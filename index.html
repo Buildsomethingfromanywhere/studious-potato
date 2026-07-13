@@ -3,57 +3,215 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Math Games — Pick Your Level</title>
+<title>Math Quest — Games for Every Level</title>
+<!-- Landing page. Fully offline: no fonts, no CDNs, no tracking. -->
 <style>
-  body{margin:0;min-height:100vh;font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
-    background:linear-gradient(#FFF8E1,#FFE0B2);display:flex;flex-direction:column;
-    align-items:center;padding:5vmin 3vmin;box-sizing:border-box}
-  h1{color:#5D4037;font-size:7vmin;margin:0 0 1vmin}
-  p.sub{color:#8D6E63;font-size:3.5vmin;margin:0 0 5vmin;text-align:center}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:3vmin;width:min(1000px,94vw)}
-  a.card{display:flex;flex-direction:column;align-items:center;gap:1.5vmin;
-    background:#fff;border-radius:3vmin;padding:4vmin 2vmin;text-decoration:none;
-    box-shadow:0 5px 14px rgba(0,0,0,.12);transition:transform .15s}
-  a.card:hover{transform:translateY(-4px) scale(1.02)}
-  .emoji{font-size:12vmin;line-height:1}
-  .name{font-size:4.5vmin;font-weight:bold;color:#37474F}
-  .age{font-size:3.2vmin;color:#fff;border-radius:3vmin;padding:.6vmin 2.5vmin}
-  .skill{font-size:3vmin;color:#78909C;text-align:center}
-  footer{margin-top:6vmin;color:#A1887F;font-size:3vmin;text-align:center;line-height:1.6}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
+    background:#1A1040;color:#fff;overflow-x:hidden}
+
+  /* ---------- floating background symbols ---------- */
+  .float{position:fixed;font-size:5vmin;opacity:.12;pointer-events:none;z-index:0;
+    animation:drift linear infinite}
+  @keyframes drift{
+    0%{transform:translateY(110vh) rotate(0deg)}
+    100%{transform:translateY(-15vh) rotate(360deg)}}
+
+  /* ---------- hero ---------- */
+  header{position:relative;z-index:2;min-height:88vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:6vmin 4vmin;
+    background:radial-gradient(ellipse at 50% 0%,#3B2A7A 0%,#1A1040 65%)}
+  .heroEmojis{font-size:9vmin;letter-spacing:2vmin;margin-bottom:2vmin}
+  .heroEmojis span{display:inline-block;animation:bob 2.2s ease-in-out infinite}
+  .heroEmojis span:nth-child(2){animation-delay:.3s}
+  .heroEmojis span:nth-child(3){animation-delay:.6s}
+  .heroEmojis span:nth-child(4){animation-delay:.9s}
+  .heroEmojis span:nth-child(5){animation-delay:1.2s}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2vmin)}}
+  h1{font-size:clamp(40px,10vmin,96px);margin:0;line-height:1.05;
+    background:linear-gradient(90deg,#FFD740,#FF4081,#00E5FF,#76FF03,#FFD740);
+    background-size:300% 100%;-webkit-background-clip:text;background-clip:text;
+    color:transparent;animation:shimmer 6s linear infinite}
+  @keyframes shimmer{to{background-position:300% 0}}
+  .tag{font-size:clamp(16px,3.2vmin,26px);color:#C5B8F0;margin:2.5vmin 0 5vmin;max-width:640px}
+  .cta{display:inline-block;font-size:clamp(18px,3.6vmin,28px);padding:2.2vmin 7vmin;
+    border-radius:100px;background:#FFD740;color:#1A1040;text-decoration:none;font-weight:bold;
+    box-shadow:0 6px 0 #c8a400,0 14px 30px rgba(255,215,64,.35);
+    animation:pulse 2s ease-in-out infinite}
+  .cta:active{transform:scale(.95)}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .scrollHint{margin-top:7vmin;font-size:5vmin;opacity:.5;animation:bob 1.6s ease-in-out infinite}
+
+  /* ---------- badges ---------- */
+  .badges{position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:2vmin;
+    justify-content:center;padding:0 4vmin 7vmin;background:#1A1040}
+  .badge{font-size:clamp(13px,2.6vmin,17px);background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:1.2vmin 3vmin;
+    color:#C5B8F0}
+
+  /* ---------- level cards ---------- */
+  main{position:relative;z-index:2;padding:2vmin 4vmin 10vmin;max-width:1100px;margin:0 auto}
+  h2{text-align:center;font-size:clamp(26px,5vmin,42px);margin:0 0 6vmin;color:#fff}
+  .cards{display:flex;flex-direction:column;gap:4vmin}
+  .card{display:flex;align-items:center;gap:4vmin;text-decoration:none;color:#fff;
+    border-radius:28px;padding:4vmin 5vmin;position:relative;overflow:hidden;
+    transform:translateY(30px);opacity:0;transition:transform .5s ease,opacity .5s ease,box-shadow .25s ease}
+  .card.show{transform:translateY(0);opacity:1}
+  .card:hover{box-shadow:0 18px 50px rgba(0,0,0,.45);transform:translateY(-6px) scale(1.015)}
+  .card .big{font-size:clamp(56px,12vmin,110px);line-height:1;flex-shrink:0;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));animation:bob 3s ease-in-out infinite}
+  .card .info{flex:1;min-width:0}
+  .card .lvl{display:inline-block;font-size:clamp(12px,2.4vmin,15px);font-weight:bold;
+    background:rgba(0,0,0,.28);border-radius:100px;padding:.6vmin 2.4vmin;margin-bottom:1vmin}
+  .card h3{margin:.5vmin 0;font-size:clamp(24px,4.6vmin,38px)}
+  .card p{margin:0;font-size:clamp(14px,2.8vmin,18px);opacity:.92}
+  .card .go{font-size:clamp(28px,6vmin,48px);flex-shrink:0;transition:transform .25s}
+  .card:hover .go{transform:translateX(8px)}
+  /* per-level theming — mirrors each game's palette */
+  .l1{background:linear-gradient(120deg,#FF8A65,#FF5252)}
+  .l2{background:linear-gradient(120deg,#4FC3F7,#0288D1)}
+  .l3{background:linear-gradient(120deg,#7C4DFF,#311B92)}
+  .l4{background:linear-gradient(120deg,#00ACC1,#0D3B45);font-family:inherit}
+  .l5{background:linear-gradient(120deg,#455A64,#1A1A2E)}
+
+  /* ---------- parents strip ---------- */
+  .parents{position:relative;z-index:2;background:#FFF8E1;color:#4E342E;
+    padding:8vmin 5vmin;text-align:center}
+  .parents h2{color:#4E342E;margin-bottom:2vmin}
+  .parents p{max-width:720px;margin:0 auto;font-size:clamp(15px,3vmin,19px);line-height:1.7}
+  .parents .row{display:flex;flex-wrap:wrap;gap:3vmin;justify-content:center;margin-top:5vmin}
+  .pcard{background:#fff;border-radius:20px;padding:3.5vmin;width:min(240px,80vw);
+    box-shadow:0 6px 18px rgba(0,0,0,.08);font-size:clamp(13px,2.7vmin,16px);line-height:1.5}
+  .pcard .ic{font-size:9vmin}
+  .pcard b{display:block;margin:1vmin 0;font-size:clamp(15px,3vmin,18px)}
+
+  footer{position:relative;z-index:2;background:#12092E;text-align:center;
+    padding:5vmin;font-size:clamp(12px,2.6vmin,15px);color:#8A7BC0;line-height:1.8}
+
+  @media (max-width:600px){
+    .card{flex-direction:column;text-align:center;gap:2vmin}
+    .card .go{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important}
+    .card{opacity:1;transform:none}
+  }
 </style>
 </head>
 <body>
-  <h1>🎓 Math Games</h1>
-  <p class="sub">Pick your level — every game is offline, ad-free, and safe.</p>
-  <div class="grid">
-    <a class="card" href="games/level-1/feed-the-monster.html">
-      <div class="emoji">🦖</div><div class="name">Feed the Monster</div>
-      <div class="age" style="background:#FF5252">Level 1 · Ages 4–5</div>
-      <div class="skill">Counting 1–10 · number recognition</div>
+
+<header>
+  <div class="heroEmojis"><span>🦖</span><span>🐠</span><span>🚀</span><span>🥷</span><span>🎯</span></div>
+  <h1>MATH QUEST</h1>
+  <p class="tag">Five games. Five levels. From first counts to solving for <i>x</i> —
+  every kid gets a game that feels made for them.</p>
+  <a class="cta" href="#levels">PICK YOUR LEVEL ▼</a>
+  <div class="scrollHint">▼</div>
+</header>
+
+<div class="badges">
+  <div class="badge">✅ 100% offline</div>
+  <div class="badge">🚫 No ads, ever</div>
+  <div class="badge">🔒 No accounts, no data</div>
+  <div class="badge">🧠 Adapts to your kid</div>
+  <div class="badge">📖 Open-source & readable</div>
+</div>
+
+<main id="levels">
+  <h2>Choose your adventure</h2>
+  <div class="cards">
+    <a class="card l1" href="games/level-1/feed-the-monster.html">
+      <div class="big">🦖</div>
+      <div class="info">
+        <span class="lvl">LEVEL 1 · AGES 4–5</span>
+        <h3>Feed the Monster</h3>
+        <p>Tap treats to fill a hungry monster — counting 1–10 with zero reading needed.</p>
+      </div>
+      <div class="go">▶</div>
     </a>
-    <a class="card" href="games/level-2/bubble-math.html">
-      <div class="emoji">🐠</div><div class="name">Bubble Math</div>
-      <div class="age" style="background:#0288D1">Level 2 · Ages 6–7</div>
-      <div class="skill">Addition & subtraction within 20</div>
+    <a class="card l2" href="games/level-2/bubble-math.html">
+      <div class="big">🐠</div>
+      <div class="info">
+        <span class="lvl">LEVEL 2 · AGES 6–7</span>
+        <h3>Bubble Math</h3>
+        <p>Pop the bubble with the right answer — addition &amp; subtraction within 20.</p>
+      </div>
+      <div class="go">▶</div>
     </a>
-    <a class="card" href="games/level-3/space-blaster.html">
-      <div class="emoji">🚀</div><div class="name">Space Blaster</div>
-      <div class="age" style="background:#7C4DFF">Level 3 · Ages 8–9</div>
-      <div class="skill">Multiplication tables 2–9</div>
+    <a class="card l3" href="games/level-3/space-blaster.html">
+      <div class="big">🚀</div>
+      <div class="info">
+        <span class="lvl">LEVEL 3 · AGES 8–9</span>
+        <h3>Space Blaster</h3>
+        <p>Blast the asteroid carrying the right product — times tables 2–9, wave by wave.</p>
+      </div>
+      <div class="go">▶</div>
     </a>
-    <a class="card" href="games/level-4/ninja-numbers.html">
-      <div class="emoji">🥷</div><div class="name">Ninja Numbers</div>
-      <div class="age" style="background:#00ACC1">Level 4 · Ages 10–11</div>
-      <div class="skill">Mixed-operation speed math</div>
+    <a class="card l4" href="games/level-4/ninja-numbers.html">
+      <div class="big">🥷</div>
+      <div class="info">
+        <span class="lvl">LEVEL 4 · AGES 10–11</span>
+        <h3>Ninja Numbers</h3>
+        <p>60 seconds, four operations, combo multipliers. Beat your personal best.</p>
+      </div>
+      <div class="go">▶</div>
     </a>
-    <a class="card" href="games/level-5/x-hunter.html">
-      <div class="emoji">🎯</div><div class="name">X Hunter</div>
-      <div class="age" style="background:#37474F">Level 5 · Ages 12+</div>
-      <div class="skill">Pre-algebra · solve for x</div>
+    <a class="card l5" href="games/level-5/x-hunter.html">
+      <div class="big">🎯</div>
+      <div class="info">
+        <span class="lvl">LEVEL 5 · AGES 12+</span>
+        <h3>X Hunter</h3>
+        <p>Solve for x and chase the streak — pre-algebra with worked solutions, not lectures.</p>
+      </div>
+      <div class="go">▶</div>
     </a>
   </div>
-  <footer>All games: one file each · fully offline · no ads · no accounts · no data collected.<br>
-  Parents: open any game file in a text editor to see (and tune) everything.</footer>
+</main>
+
+<section class="parents">
+  <h2>For parents 👋</h2>
+  <p>Every game is a single file you can read, works with no internet, and hides
+  real practice inside real play. Difficulty adapts silently — streaks nudge it up,
+  stumbles bring it down and quietly re-serve missed questions later.</p>
+  <div class="row">
+    <div class="pcard"><div class="ic">🎓</div><b>Learning inside the fun</b>
+      The math IS the game mechanic — never a quiz interrupting playtime.</div>
+    <div class="pcard"><div class="ic">🌱</div><b>Kind by design</b>
+      No buzzers, no game-overs for little ones. Natural stopping points end
+      screen time without meltdowns.</div>
+    <div class="pcard"><div class="ic">🔧</div><b>Tune it yourself</b>
+      Open any game file — a marked TUNABLES section lets you adjust
+      difficulty in seconds.</div>
+  </div>
+</section>
+
+<footer>
+  Made with ❤️ for curious kids.<br>
+  No ads · no links out · no tracking · sound is always one tap from off.
+</footer>
+
+<script>
+"use strict";
+// floating background symbols
+const SYMBOLS=["＋","−","×","÷","＝","1","2","3","7","9","x","π","★"];
+for(let i=0;i<18;i++){
+  const s=document.createElement("div");
+  s.className="float";
+  s.textContent=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+  s.style.left=Math.random()*96+"vw";
+  s.style.fontSize=(3+Math.random()*5)+"vmin";
+  s.style.animationDuration=(14+Math.random()*22)+"s";
+  s.style.animationDelay=(-Math.random()*30)+"s";
+  document.body.appendChild(s);
+}
+// reveal cards as they scroll into view
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add("show");io.unobserve(e.target);}
+}),{threshold:.15});
+document.querySelectorAll(".card").forEach((c,i)=>{
+  c.style.transitionDelay=(i*80)+"ms"; io.observe(c);
+});
+</script>
 </body>
 </html>
