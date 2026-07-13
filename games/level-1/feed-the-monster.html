@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Feed the Monster — Counting Game (Ages 4–5)</title>
+<!--
+  FEED THE MONSTER  •  Level 1 counting game (ages 4–5)
+  100% offline. No ads, no links, no accounts, no data collected.
+  One file — parents can read every line.
+-->
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:"Comic Sans MS","Chalkboard SE","Marker Felt",rounded,sans-serif;
+    background:#FFF8E1}
+  #stage{position:fixed;inset:0;overflow:hidden}
+
+  /* ---------- shared ---------- */
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4vmin}
+  .hidden{display:none !important}
+  button{border:none;background:none;font-family:inherit;cursor:pointer;padding:0}
+
+  /* ---------- top bar ---------- */
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:6vmin;width:11vmin;height:11vmin;border-radius:50%;
+    background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15);display:flex;
+    align-items:center;justify-content:center}
+  #starbar{font-size:5vmin;background:#fff;border-radius:6vmin;padding:1vmin 3vmin;
+    box-shadow:0 3px 8px rgba(0,0,0,.12);display:flex;align-items:center;gap:1vmin}
+
+  /* ---------- title ---------- */
+  #titleMonster{font-size:24vmin;animation:bounce 1.6s ease-in-out infinite}
+  #playBtn{font-size:16vmin;width:28vmin;height:28vmin;border-radius:50%;
+    background:#69F0AE;box-shadow:0 8px 0 #2eb872,0 12px 20px rgba(0,0,0,.2);
+    display:flex;align-items:center;justify-content:center;
+    animation:breathe 2s ease-in-out infinite}
+  #playBtn:active{transform:scale(.92)}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3vmin)}}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+
+  /* ---------- game ---------- */
+  #ask{position:absolute;top:14vmin;left:0;right:0;display:flex;flex-direction:column;
+    align-items:center;gap:1vmin;pointer-events:none}
+  #askBubble{background:#fff;border-radius:5vmin;padding:1.5vmin 5vmin;
+    box-shadow:0 4px 12px rgba(0,0,0,.12);display:flex;align-items:center;gap:2.5vmin}
+  #askNum{font-size:13vmin;font-weight:bold;color:#FF5252;line-height:1}
+  #askFood{font-size:10vmin;line-height:1}
+  #dots{display:flex;gap:1.4vmin;flex-wrap:wrap;justify-content:center;max-width:80vmin}
+  .dot{width:4.5vmin;height:4.5vmin;border-radius:50%;background:#cfd8dc;transition:all .25s}
+  .dot.on{background:#40C4FF;transform:scale(1.25)}
+
+  #field{position:absolute;inset:0}
+  .food{position:absolute;font-size:15vmin;line-height:1;
+    filter:drop-shadow(0 4px 4px rgba(0,0,0,.15));
+    transition:left .5s cubic-bezier(.5,-.3,.4,1),top .5s cubic-bezier(.5,-.3,.4,1),
+      transform .5s ease,opacity .4s ease;
+    animation:wiggle 2.4s ease-in-out infinite}
+  @keyframes wiggle{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+  .food.eaten{animation:none;transform:scale(.15);opacity:0}
+
+  #monster{position:absolute;bottom:2vmin;left:50%;transform:translateX(-50%);
+    font-size:26vmin;line-height:1;transition:transform .2s;pointer-events:none}
+  #monster.chomp{transform:translateX(-50%) scale(1.18)}
+  #monster.dance{animation:dance .5s ease-in-out 4}
+  @keyframes dance{0%,100%{transform:translateX(-50%) rotate(0)}
+    25%{transform:translateX(-56%) rotate(-12deg) scale(1.1)}
+    75%{transform:translateX(-44%) rotate(12deg) scale(1.1)}}
+
+  #bigCount{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);
+    font-size:30vmin;font-weight:bold;color:#FF5252;pointer-events:none;opacity:0;
+    text-shadow:0 5px 0 rgba(0,0,0,.08)}
+  #bigCount.pop{animation:pop .7s ease-out}
+  @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}
+    30%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}
+    60%{transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+
+  .particle{position:absolute;pointer-events:none;font-size:5vmin;line-height:1}
+
+  /* ---------- break / play-again ---------- */
+  #breakStars{font-size:12vmin;letter-spacing:1vmin}
+  #breakMonster{font-size:22vmin;animation:bounce 1.4s ease-in-out infinite}
+  #againBtn{font-size:12vmin;width:24vmin;height:24vmin;border-radius:50%;
+    background:#FFD740;box-shadow:0 8px 0 #d4a900,0 12px 20px rgba(0,0,0,.2);
+    display:flex;align-items:center;justify-content:center;
+    animation:breathe 2s ease-in-out infinite}
+  #againBtn:active{transform:scale(.92)}
+
+  /* ---------- parent info ---------- */
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:#fff;border-radius:4vmin;padding:5vmin;max-width:80vmin;
+    font-size:3.4vmin;line-height:1.5;color:#37474f}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.5vmin;color:#FF5252}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <div id="topbar">
+    <button id="infoBtn" title="For parents">ⓘ</button>
+    <div id="starbar">⭐ <span id="starCount">0</span></div>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <!-- TITLE -->
+  <div id="titleScreen" class="screen">
+    <div id="titleMonster">🦖</div>
+    <button id="playBtn">▶</button>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameScreen" class="screen hidden" style="justify-content:flex-start">
+    <div id="ask">
+      <div id="askBubble"><span id="askNum">3</span><span>×</span><span id="askFood">🍎</span></div>
+      <div id="dots"></div>
+    </div>
+    <div id="field"></div>
+    <div id="monster">🦖</div>
+    <div id="bigCount"></div>
+  </div>
+
+  <!-- BREAK (natural stopping point every 5 rounds) -->
+  <div id="breakScreen" class="screen hidden">
+    <div id="breakMonster">🦖</div>
+    <div id="breakStars"></div>
+    <button id="againBtn">▶</button>
+  </div>
+
+  <!-- PARENT INFO -->
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      Your child practices <b>counting 1–10</b> and <b>number recognition</b>.
+      The game quietly gets harder with success (starts at 2, grows to 10) —
+      there is no losing and no time pressure.
+      <br><br>
+      ✅ Fully offline • no ads • no links • no data collected.<br>
+      💡 Count out loud together — “one… two… three!”<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const START_COUNT   = 2;    // first round asks for this many
+const MAX_COUNT     = 10;   // hardest round
+const STEP_EVERY    = 2;    // rounds of success before asking for one more
+const ROUNDS_PER_SET= 5;    // rounds before the "play again?" pause
+const EXTRA_FOOD    = 2;    // decoy items beyond the target (kid counts, not just clears)
+const SPEAK_NUMBERS = true; // say "one, two, three" aloud (uses device voice)
+
+const FOODS = ["🍎","🍪","🍌","🍓","🥕","🧁","🍇","🍉"];
+const MONSTERS = ["🦖","🐸","🐙","🦁","🐼","🐲"];
+
+// ===== state machine =====
+let state = "title";          // title | playing | celebrating | break
+let target = START_COUNT, eaten = 0, round = 0, streak = 0, stars = 0;
+let muted = false, food = [];
+
+const $ = id => document.getElementById(id);
+const stage=$("stage"), field=$("field"), monster=$("monster");
+
+// ===== sound: tiny synth, no files =====
+let actx;
+function sound(freq, dur=0.15, type="sine", vol=0.2){
+  if (muted) return;
+  try{
+    actx ??= new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime+dur);
+  }catch(e){/* audio unavailable — play silently */}
+}
+const plink = n => sound(440 + n*70, .18, "sine");            // rising with each bite
+const fanfare = () => [523,659,784,1047].forEach((f,i)=>setTimeout(()=>sound(f,.22),i*110));
+const sparkleSnd = () => sound(880,.08,"triangle",.08);
+
+const NUM_WORDS=["zero","one","two","three","four","five","six","seven","eight","nine","ten"];
+function speak(n){
+  if (muted || !SPEAK_NUMBERS || !window.speechSynthesis) return;
+  try{
+    const u=new SpeechSynthesisUtterance(NUM_WORDS[n]||String(n));
+    u.rate=.9; u.pitch=1.3; speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+// ===== particles (pooled) =====
+const pool=[];
+for(let i=0;i<40;i++){
+  const p=document.createElement("div");
+  p.className="particle hidden"; stage.appendChild(p); pool.push(p);
+}
+let poolIdx=0;
+function burst(x,y,chars,n=8){
+  for(let i=0;i<n;i++){
+    const p=pool[poolIdx=(poolIdx+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const ang=Math.random()*Math.PI*2, dist=(8+Math.random()*14);
+    p.style.left=x+"px"; p.style.top=y+"px";
+    p.style.transition="none"; p.style.opacity="1";
+    p.style.transform="translate(-50%,-50%) scale(1)";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .8s ease-out";
+      p.style.left=(x+Math.cos(ang)*dist*window.innerWidth/100)+"px";
+      p.style.top =(y+Math.sin(ang)*dist*window.innerHeight/100)+"px";
+      p.style.opacity="0";
+      p.style.transform="translate(-50%,-50%) scale(.4) rotate("+(Math.random()*360)+"deg)";
+    }));
+  }
+}
+
+// ===== screens =====
+function show(name){
+  ["titleScreen","gameScreen","breakScreen"].forEach(s=>$(s).classList.add("hidden"));
+  $(name).classList.remove("hidden");
+}
+
+// ===== round setup =====
+function startRound(){
+  state="playing"; eaten=0; round++;
+  const m=MONSTERS[Math.floor((round-1)/ROUNDS_PER_SET)%MONSTERS.length];
+  monster.textContent=m; $("breakMonster").textContent=m; $("titleMonster").textContent=m;
+  const foodEmoji=FOODS[(round-1)%FOODS.length];
+  $("askNum").textContent=target;
+  $("askFood").textContent=foodEmoji;
+
+  // dots — one lights up per bite (number sense without reading)
+  const dots=$("dots"); dots.innerHTML="";
+  for(let i=0;i<target;i++){const d=document.createElement("div");d.className="dot";dots.appendChild(d);}
+
+  // scatter food: target + extras, huge targets, away from edges
+  field.innerHTML=""; food=[];
+  const n=target+EXTRA_FOOD;
+  const placed=[];
+  for(let i=0;i<n;i++){
+    const el=document.createElement("div");
+    el.className="food"; el.textContent=foodEmoji;
+    let x,y,tries=0;
+    do{
+      x=12+Math.random()*66;               // % of width, padded from edges
+      y=28+Math.random()*38;               // between ask-bubble and monster
+      tries++;
+    }while(tries<40 && placed.some(p=>Math.abs(p.x-x)<17&&Math.abs(p.y-y)<15));
+    placed.push({x,y});
+    el.style.left=x+"vw"; el.style.top=y+"vh";
+    el.style.animationDelay=(Math.random()*2)+"s";
+    el.addEventListener("pointerdown",ev=>{ev.stopPropagation();eat(el);});
+    field.appendChild(el); food.push(el);
+  }
+  show("gameScreen");
+}
+
+// ===== eat a food item =====
+function eat(el){
+  if(state!=="playing"||el.dataset.done) return;
+  el.dataset.done="1";
+  eaten++;
+  // fly to monster's mouth
+  const r=monster.getBoundingClientRect();
+  el.style.left=(r.left+r.width/2)+"px"; el.style.top=(r.top+r.height*0.35)+"px";
+  el.classList.add("eaten");
+  monster.classList.add("chomp");
+  setTimeout(()=>monster.classList.remove("chomp"),200);
+  // count feedback
+  plink(eaten); speak(eaten);
+  const bc=$("bigCount");
+  bc.textContent=eaten; bc.classList.remove("pop"); void bc.offsetWidth; bc.classList.add("pop");
+  const dots=$("dots").children;
+  if(dots[eaten-1]) dots[eaten-1].classList.add("on");
+
+  if(eaten>=target) celebrate();
+}
+
+// ===== celebrate =====
+function celebrate(){
+  state="celebrating"; streak++; stars++;
+  $("starCount").textContent=stars;
+  if(streak%STEP_EVERY===0 && target<MAX_COUNT) target++;   // silent ramp-up
+  monster.classList.add("dance");
+  fanfare();
+  const r=monster.getBoundingClientRect();
+  burst(r.left+r.width/2, r.top, ["⭐","🎉","💛","✨"], 14);
+  setTimeout(()=>{
+    monster.classList.remove("dance");
+    if(round%ROUNDS_PER_SET===0){
+      $("breakStars").textContent="⭐".repeat(Math.min(5,ROUNDS_PER_SET));
+      state="break"; show("breakScreen");
+    }else{
+      startRound();
+    }
+  },2300);
+}
+
+// ===== global taps: every touch responds with something =====
+stage.addEventListener("pointerdown",e=>{
+  if(state==="playing"){ burst(e.clientX,e.clientY,["✨"],3); sparkleSnd(); }
+});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+
+// ===== buttons =====
+$("playBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation(); sound(660,.12); startRound();
+});
+$("againBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation(); sound(660,.12); startRound();
+});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation(); muted=!muted;
+  $("muteBtn").textContent=muted?"🔇":"🔊";
+  if(muted && window.speechSynthesis) speechSynthesis.cancel();
+});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation(); $("infoPanel").classList.remove("hidden");
+});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation(); $("infoPanel").classList.add("hidden");
+});
+
+// ===== idle attention: title monster giggles if nothing happens =====
+setInterval(()=>{
+  if(state==="title") sparkleSnd();
+},15000);
+</script>
+</body>
+</html>
