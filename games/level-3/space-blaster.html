@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Space Blaster — Times Tables (Ages 8–9)</title>
+<!--
+  SPACE BLASTER  •  Level 3 (ages 8–9)  •  multiplication tables
+  100% offline. No ads, no links, no accounts, no data collected.
+-->
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
+    background:linear-gradient(#311B92,#1A0E5E 70%,#0d0630)}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:3.5vmin;z-index:5}
+  .hidden{display:none !important}
+  button{border:none;background:none;font-family:inherit;cursor:pointer;padding:0;color:inherit}
+
+  .bgstar{position:absolute;color:#fff;pointer-events:none;animation:twinkle 3s ease-in-out infinite}
+  @keyframes twinkle{0%,100%{opacity:.2}50%{opacity:.9}}
+
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:5vmin;width:9vmin;height:9vmin;border-radius:50%;
+    background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center}
+  #hud{font-size:4.2vmin;color:#FFD740;background:rgba(255,255,255,.1);
+    border-radius:6vmin;padding:1vmin 3vmin;display:flex;gap:3vmin}
+
+  h1{color:#FFD740;font-size:8.5vmin;margin:0;text-shadow:0 0 4vmin #7C4DFF}
+  #titleShip{font-size:20vmin;animation:hover 2s ease-in-out infinite}
+  @keyframes hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5vmin)}}
+  .bigBtn{font-size:11vmin;width:22vmin;height:22vmin;border-radius:50%;
+    background:#7C4DFF;box-shadow:0 0 6vmin #7C4DFF;color:#fff;
+    display:flex;align-items:center;justify-content:center}
+  .bigBtn:active{transform:scale(.92)}
+  .sub{color:#B39DDB;font-size:4vmin}
+
+  #problem{position:absolute;top:12vmin;left:50%;transform:translateX(-50%);
+    font-size:12vmin;font-weight:bold;color:#fff;text-shadow:0 0 3vmin #7C4DFF;
+    white-space:nowrap;z-index:10}
+  #problem.shake{animation:shake .4s ease}
+  @keyframes shake{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-53%)}
+    75%{transform:translateX(-47%)}}
+
+  .asteroid{position:absolute;width:18vmin;height:18vmin;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#8d6e63,#4e342e 70%);
+    border:.5vmin solid #6d4c41;display:flex;align-items:center;justify-content:center;
+    font-size:7.5vmin;font-weight:bold;color:#FFD740;
+    box-shadow:0 0 2.5vmin rgba(0,0,0,.6)}
+  .asteroid.boom{transition:transform .3s,opacity .3s;transform:scale(1.7);opacity:0}
+
+  #ship{position:absolute;bottom:3vmin;left:50%;transform:translateX(-50%);
+    font-size:15vmin;line-height:1;pointer-events:none;transition:left .25s ease;z-index:8}
+  #laser{position:absolute;width:1.2vmin;background:linear-gradient(#00E5FF,#76FF03);
+    left:0;top:0;transform-origin:top center;opacity:0;pointer-events:none;z-index:7;
+    box-shadow:0 0 2vmin #00E5FF}
+
+  .particle{position:absolute;pointer-events:none;font-size:5vmin;line-height:1;z-index:20}
+
+  #waveStars{font-size:11vmin;letter-spacing:1vmin}
+  .scoreLine{font-size:5.5vmin;color:#fff}
+  .best{color:#76FF03}
+
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:#fff;border-radius:4vmin;padding:5vmin;max-width:80vmin;
+    font-size:3.4vmin;line-height:1.5;color:#37474f}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.5vmin;color:#7C4DFF}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="topbar">
+    <button id="infoBtn">ⓘ</button>
+    <div id="hud">🏆 <span id="score">0</span> 🔥 <span id="streak">0</span></div>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <div id="titleShip">🚀</div>
+    <h1>Space Blaster</h1>
+    <div class="sub">Shoot the right answer!</div>
+    <div class="sub best" id="bestLine"></div>
+    <button id="playBtn" class="bigBtn">▶</button>
+  </div>
+
+  <div id="gameScreen" class="screen hidden" style="justify-content:flex-start">
+    <div id="problem">6 × 4 = ?</div>
+    <div id="ship">🚀</div>
+    <div id="laser"></div>
+  </div>
+
+  <div id="waveScreen" class="screen hidden">
+    <div id="waveStars"></div>
+    <div class="scoreLine">Score: <span id="waveScore">0</span></div>
+    <div class="scoreLine best" id="waveBest"></div>
+    <button id="nextBtn" class="bigBtn">▶</button>
+  </div>
+
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      Practices <b>multiplication tables</b>. Starts with the 2–5 tables and
+      quietly advances to 9 as accuracy grows; missed facts return a few
+      questions later. Waves of 8 questions earn 1–3 stars by accuracy —
+      a natural break point every couple of minutes. Best score is saved
+      on this device only.
+      <br><br>✅ Fully offline • no ads • no links • no data collected.<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const ASTEROIDS      = 4;    // answers on screen
+const FALL_SPEED     = 4.0;  // vmin per second
+const WAVE_LENGTH    = 8;    // questions per wave
+const STREAK_UP      = 4;    // correct-in-a-row to widen tables
+const POINTS_CORRECT = 10;
+
+let state="title";
+let tableMax=5, answer=0, q=0, waveHits=0, score=0, streak=0, muted=false;
+let asteroids=[], reserve=[], current=null, best=0;
+
+const $=id=>document.getElementById(id);
+const stage=$("stage"), gameScreen=$("gameScreen"), ship=$("ship"), laser=$("laser");
+
+// best score (degrade silently if storage unavailable)
+try{best=+localStorage.getItem("spaceBlasterBest")||0;}catch(e){}
+if(best) $("bestLine").textContent="Best: "+best;
+
+let actx;
+function sound(freq,dur=.15,type="sine",vol=.2){
+  if(muted) return;
+  try{
+    actx ??= new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+dur);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+const laserSnd=()=>{sound(1200,.08,"sawtooth",.12);setTimeout(()=>sound(900,.08,"sawtooth",.1),60);};
+const boomSnd =()=>sound(90,.3,"square",.25);
+const missSnd =()=>sound(200,.25,"triangle",.15);
+const winSnd  =()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>sound(f,.2),i*100));
+
+// background stars
+for(let i=0;i<26;i++){
+  const s=document.createElement("div");
+  s.className="bgstar";s.textContent="·";
+  s.style.left=Math.random()*98+"vw";s.style.top=Math.random()*98+"vh";
+  s.style.fontSize=(1+Math.random()*3)+"vmin";
+  s.style.animationDelay=(Math.random()*3)+"s";
+  stage.appendChild(s);
+}
+
+// particles
+const pool=[];
+for(let i=0;i<30;i++){const p=document.createElement("div");
+  p.className="particle hidden";stage.appendChild(p);pool.push(p);}
+let pi=0;
+function burst(x,y,chars,n=10){
+  for(let i=0;i<n;i++){
+    const p=pool[pi=(pi+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const a=Math.random()*Math.PI*2,d=8+Math.random()*14;
+    p.style.left=x+"px";p.style.top=y+"px";
+    p.style.transition="none";p.style.opacity="1";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .7s ease-out";
+      p.style.left=(x+Math.cos(a)*d*innerWidth/100)+"px";
+      p.style.top=(y+Math.sin(a)*d*innerHeight/100)+"px";
+      p.style.opacity="0";
+    }));
+  }
+}
+
+const r=n=>Math.floor(Math.random()*n);
+
+function makeProblem(){
+  if(reserve.length&&Math.random()<.4) return reserve.shift();
+  const a=2+r(tableMax-1), b=2+r(8);
+  return {a,b,ans:a*b};
+}
+
+function newQuestion(){
+  state="playing"; q++;
+  current=makeProblem(); answer=current.ans;
+  $("problem").textContent=`${current.a} × ${current.b} = ?`;
+  asteroids.forEach(a=>a.el.remove()); asteroids=[];
+  const opts=new Set([answer]);
+  while(opts.size<ASTEROIDS){
+    const wrongs=[answer+current.a,answer-current.a,answer+current.b,
+      answer-current.b,answer+10,answer-10,answer+1,answer-1];
+    const d=wrongs[r(wrongs.length)];
+    if(d>0&&d!==answer) opts.add(d);
+  }
+  [...opts].sort(()=>Math.random()-.5).forEach((v,i)=>{
+    const el=document.createElement("div");
+    el.className="asteroid"; el.textContent=v;
+    const x=5+i*(90/ASTEROIDS)+r(3);
+    const y=-(15+r(30));
+    el.style.left=x+"vw"; el.style.top=y+"vh";
+    const a={el,v,x,y,spin:(Math.random()-.5)*40,rot:0,dead:false};
+    el.addEventListener("pointerdown",ev=>{ev.stopPropagation();shoot(a);});
+    gameScreen.appendChild(el); asteroids.push(a);
+  });
+}
+
+// motion
+let last=0;
+function frame(t){
+  const dt=Math.min((t-last)/1000,.05); last=t;
+  if(state==="playing"){
+    for(const a of asteroids){
+      if(a.dead) continue;
+      a.y+=FALL_SPEED*dt; a.rot+=a.spin*dt;
+      if(a.y>92) a.y=-18;                       // recycle gently, no punishment
+      a.el.style.top=a.y+"vh";
+      a.el.style.transform=`rotate(${a.rot}deg)`;
+    }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+function fireLaser(rect){
+  const sr=ship.getBoundingClientRect();
+  const sx=sr.left+sr.width/2, sy=sr.top+sr.height*.2;
+  const tx=rect.left+rect.width/2, ty=rect.top+rect.height/2;
+  const len=Math.hypot(tx-sx,ty-sy);
+  const ang=Math.atan2(tx-sx,-(ty-sy));        // from vertical
+  laser.style.left=sx+"px"; laser.style.top=ty+"px";
+  laser.style.height=len+"px";
+  laser.style.transform=`rotate(${ang}rad)`;
+  laser.style.top=sy-len+"px";                  // draw upward from ship
+  laser.style.left=sx+"px";
+  laser.style.transformOrigin="bottom center";
+  laser.style.top=sy-len+"px";
+  laser.style.opacity="1";
+  setTimeout(()=>laser.style.opacity="0",120);
+}
+
+function shoot(a){
+  if(state!=="playing"||a.dead) return;
+  const rect=a.el.getBoundingClientRect();
+  // ship slides under the target then fires
+  ship.style.left=(rect.left+rect.width/2)/innerWidth*100+"vw"; // CSS keeps translateX(-50%)
+  laserSnd(); fireLaser(rect);
+  if(a.v===answer){
+    a.dead=true; a.el.classList.add("boom"); boomSnd();
+    burst(rect.left+rect.width/2,rect.top+rect.height/2,["💥","⭐","✨"],12);
+    streak++; waveHits++;
+    score+=POINTS_CORRECT*(1+Math.floor(streak/3)); // small streak bonus
+    $("score").textContent=score; $("streak").textContent=streak;
+    if(streak%STREAK_UP===0&&tableMax<9) tableMax++;
+    state="waiting";
+    setTimeout(()=> q%WAVE_LENGTH===0 ? endWave() : newQuestion(), 800);
+  }else{
+    missSnd(); streak=0; $("streak").textContent=0;
+    $("problem").classList.remove("shake");void $("problem").offsetWidth;
+    $("problem").classList.add("shake");
+    reserve.push({...current});
+    if(tableMax>3) tableMax--;                  // silent ease-off
+    a.el.style.filter="grayscale(1)";           // spent asteroid
+    a.dead=true;
+    setTimeout(()=>{a.el.remove();},400);
+  }
+}
+
+function endWave(){
+  state="wave";
+  winSnd();
+  const starsEarned=waveHits>=WAVE_LENGTH?3:waveHits>=WAVE_LENGTH*.7?2:1;
+  $("waveStars").textContent="⭐".repeat(starsEarned)+"☆".repeat(3-starsEarned);
+  $("waveScore").textContent=score;
+  if(score>best){best=score;$("waveBest").textContent="🏅 New best!";
+    try{localStorage.setItem("spaceBlasterBest",best);}catch(e){}}
+  else $("waveBest").textContent=best?("Best: "+best):"";
+  waveHits=0;
+  $("gameScreen").classList.add("hidden");
+  $("waveScreen").classList.remove("hidden");
+}
+
+function startPlay(){
+  $("titleScreen").classList.add("hidden");
+  $("waveScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  newQuestion();
+}
+$("playBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.12);startPlay();});
+$("nextBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.12);startPlay();});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.remove("hidden");});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.add("hidden");});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Games — Pick Your Level</title>
+<style>
+  body{margin:0;min-height:100vh;font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
+    background:linear-gradient(#FFF8E1,#FFE0B2);display:flex;flex-direction:column;
+    align-items:center;padding:5vmin 3vmin;box-sizing:border-box}
+  h1{color:#5D4037;font-size:7vmin;margin:0 0 1vmin}
+  p.sub{color:#8D6E63;font-size:3.5vmin;margin:0 0 5vmin;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:3vmin;width:min(1000px,94vw)}
+  a.card{display:flex;flex-direction:column;align-items:center;gap:1.5vmin;
+    background:#fff;border-radius:3vmin;padding:4vmin 2vmin;text-decoration:none;
+    box-shadow:0 5px 14px rgba(0,0,0,.12);transition:transform .15s}
+  a.card:hover{transform:translateY(-4px) scale(1.02)}
+  .emoji{font-size:12vmin;line-height:1}
+  .name{font-size:4.5vmin;font-weight:bold;color:#37474F}
+  .age{font-size:3.2vmin;color:#fff;border-radius:3vmin;padding:.6vmin 2.5vmin}
+  .skill{font-size:3vmin;color:#78909C;text-align:center}
+  footer{margin-top:6vmin;color:#A1887F;font-size:3vmin;text-align:center;line-height:1.6}
+</style>
+</head>
+<body>
+  <h1>🎓 Math Games</h1>
+  <p class="sub">Pick your level — every game is offline, ad-free, and safe.</p>
+  <div class="grid">
+    <a class="card" href="games/level-1/feed-the-monster.html">
+      <div class="emoji">🦖</div><div class="name">Feed the Monster</div>
+      <div class="age" style="background:#FF5252">Level 1 · Ages 4–5</div>
+      <div class="skill">Counting 1–10 · number recognition</div>
+    </a>
+    <a class="card" href="games/level-2/bubble-math.html">
+      <div class="emoji">🐠</div><div class="name">Bubble Math</div>
+      <div class="age" style="background:#0288D1">Level 2 · Ages 6–7</div>
+      <div class="skill">Addition & subtraction within 20</div>
+    </a>
+    <a class="card" href="games/level-3/space-blaster.html">
+      <div class="emoji">🚀</div><div class="name">Space Blaster</div>
+      <div class="age" style="background:#7C4DFF">Level 3 · Ages 8–9</div>
+      <div class="skill">Multiplication tables 2–9</div>
+    </a>
+    <a class="card" href="games/level-4/ninja-numbers.html">
+      <div class="emoji">🥷</div><div class="name">Ninja Numbers</div>
+      <div class="age" style="background:#00ACC1">Level 4 · Ages 10–11</div>
+      <div class="skill">Mixed-operation speed math</div>
+    </a>
+    <a class="card" href="games/level-5/x-hunter.html">
+      <div class="emoji">🎯</div><div class="name">X Hunter</div>
+      <div class="age" style="background:#37474F">Level 5 · Ages 12+</div>
+      <div class="skill">Pre-algebra · solve for x</div>
+    </a>
+  </div>
+  <footer>All games: one file each · fully offline · no ads · no accounts · no data collected.<br>
+  Parents: open any game file in a text editor to see (and tune) everything.</footer>
+</body>
+</html>
