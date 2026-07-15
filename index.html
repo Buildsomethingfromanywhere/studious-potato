@@ -3,215 +3,216 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Math Quest — Games for Every Level</title>
+<title>Math Quest — Pick Your Level</title>
 <!-- Landing page. Fully offline: no fonts, no CDNs, no tracking. -->
 <style>
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{margin:0;font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
-    background:#1A1040;color:#fff;overflow-x:hidden}
+  body{margin:0;min-height:100vh;font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
+    color:#fff;overflow-x:hidden;transition:background 1s ease;
+    background:linear-gradient(160deg,var(--bgA,#FF8A65),var(--bgB,#D84315))}
 
-  /* ---------- floating background symbols ---------- */
-  .float{position:fixed;font-size:5vmin;opacity:.12;pointer-events:none;z-index:0;
+  /* floating background bits */
+  .float{position:fixed;font-size:5vmin;opacity:.13;pointer-events:none;z-index:0;
     animation:drift linear infinite}
-  @keyframes drift{
-    0%{transform:translateY(110vh) rotate(0deg)}
+  @keyframes drift{0%{transform:translateY(108vh) rotate(0)}
     100%{transform:translateY(-15vh) rotate(360deg)}}
 
   /* ---------- hero ---------- */
-  header{position:relative;z-index:2;min-height:88vh;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;text-align:center;padding:6vmin 4vmin;
-    background:radial-gradient(ellipse at 50% 0%,#3B2A7A 0%,#1A1040 65%)}
-  .heroEmojis{font-size:9vmin;letter-spacing:2vmin;margin-bottom:2vmin}
-  .heroEmojis span{display:inline-block;animation:bob 2.2s ease-in-out infinite}
-  .heroEmojis span:nth-child(2){animation-delay:.3s}
-  .heroEmojis span:nth-child(3){animation-delay:.6s}
-  .heroEmojis span:nth-child(4){animation-delay:.9s}
-  .heroEmojis span:nth-child(5){animation-delay:1.2s}
-  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2vmin)}}
-  h1{font-size:clamp(40px,10vmin,96px);margin:0;line-height:1.05;
-    background:linear-gradient(90deg,#FFD740,#FF4081,#00E5FF,#76FF03,#FFD740);
-    background-size:300% 100%;-webkit-background-clip:text;background-clip:text;
-    color:transparent;animation:shimmer 6s linear infinite}
-  @keyframes shimmer{to{background-position:300% 0}}
-  .tag{font-size:clamp(16px,3.2vmin,26px);color:#C5B8F0;margin:2.5vmin 0 5vmin;max-width:640px}
-  .cta{display:inline-block;font-size:clamp(18px,3.6vmin,28px);padding:2.2vmin 7vmin;
-    border-radius:100px;background:#FFD740;color:#1A1040;text-decoration:none;font-weight:bold;
-    box-shadow:0 6px 0 #c8a400,0 14px 30px rgba(255,215,64,.35);
-    animation:pulse 2s ease-in-out infinite}
-  .cta:active{transform:scale(.95)}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-  .scrollHint{margin-top:7vmin;font-size:5vmin;opacity:.5;animation:bob 1.6s ease-in-out infinite}
+  header{position:relative;z-index:2;text-align:center;padding:7vmin 4vmin 3vmin}
+  h1{font-size:clamp(38px,9vmin,84px);margin:0;line-height:1.05;
+    text-shadow:0 4px 0 rgba(0,0,0,.18),0 10px 24px rgba(0,0,0,.28)}
+  .tag{font-size:clamp(15px,3vmin,22px);opacity:.92;margin:1.5vmin auto 0;max-width:620px}
 
-  /* ---------- badges ---------- */
-  .badges{position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:2vmin;
-    justify-content:center;padding:0 4vmin 7vmin;background:#1A1040}
-  .badge{font-size:clamp(13px,2.6vmin,17px);background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:1.2vmin 3vmin;
-    color:#C5B8F0}
+  /* ---------- level picker ---------- */
+  nav{position:sticky;top:0;z-index:20;padding:2.5vmin 2vmin;
+    background:rgba(0,0,0,.22);backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px)}
+  .picker{display:flex;gap:2vmin;justify-content:flex-start;overflow-x:auto;
+    padding:1vmin 2vmin;scrollbar-width:none;max-width:1000px;margin:0 auto}
+  .picker::-webkit-scrollbar{display:none}
+  .lvlBtn{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:.4vmin;
+    border:none;cursor:pointer;font-family:inherit;color:#fff;
+    background:rgba(255,255,255,.14);border-radius:22px;padding:1.6vmin 3.2vmin;
+    transition:transform .2s,background .2s,box-shadow .2s;min-width:15vmin}
+  .lvlBtn .m{font-size:clamp(26px,6vmin,44px);line-height:1;
+    transition:transform .25s}
+  .lvlBtn .l{font-size:clamp(11px,2.2vmin,14px);font-weight:bold;white-space:nowrap}
+  .lvlBtn .a{font-size:clamp(10px,2vmin,12px);opacity:.85;white-space:nowrap}
+  .lvlBtn:hover .m{transform:scale(1.2) rotate(-6deg)}
+  .lvlBtn.active{background:#fff;color:var(--ink,#D84315);transform:scale(1.06);
+    box-shadow:0 8px 22px rgba(0,0,0,.3)}
+  .lvlBtn.active .m{transform:scale(1.25);animation:hop 1.2s ease-in-out infinite}
+  @keyframes hop{0%,100%{transform:scale(1.25) translateY(0)}
+    50%{transform:scale(1.25) translateY(-.8vmin)}}
 
-  /* ---------- level cards ---------- */
-  main{position:relative;z-index:2;padding:2vmin 4vmin 10vmin;max-width:1100px;margin:0 auto}
-  h2{text-align:center;font-size:clamp(26px,5vmin,42px);margin:0 0 6vmin;color:#fff}
-  .cards{display:flex;flex-direction:column;gap:4vmin}
-  .card{display:flex;align-items:center;gap:4vmin;text-decoration:none;color:#fff;
-    border-radius:28px;padding:4vmin 5vmin;position:relative;overflow:hidden;
-    transform:translateY(30px);opacity:0;transition:transform .5s ease,opacity .5s ease,box-shadow .25s ease}
-  .card.show{transform:translateY(0);opacity:1}
-  .card:hover{box-shadow:0 18px 50px rgba(0,0,0,.45);transform:translateY(-6px) scale(1.015)}
-  .card .big{font-size:clamp(56px,12vmin,110px);line-height:1;flex-shrink:0;
-    filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));animation:bob 3s ease-in-out infinite}
-  .card .info{flex:1;min-width:0}
-  .card .lvl{display:inline-block;font-size:clamp(12px,2.4vmin,15px);font-weight:bold;
-    background:rgba(0,0,0,.28);border-radius:100px;padding:.6vmin 2.4vmin;margin-bottom:1vmin}
-  .card h3{margin:.5vmin 0;font-size:clamp(24px,4.6vmin,38px)}
-  .card p{margin:0;font-size:clamp(14px,2.8vmin,18px);opacity:.92}
-  .card .go{font-size:clamp(28px,6vmin,48px);flex-shrink:0;transition:transform .25s}
-  .card:hover .go{transform:translateX(8px)}
-  /* per-level theming — mirrors each game's palette */
-  .l1{background:linear-gradient(120deg,#FF8A65,#FF5252)}
-  .l2{background:linear-gradient(120deg,#4FC3F7,#0288D1)}
-  .l3{background:linear-gradient(120deg,#7C4DFF,#311B92)}
-  .l4{background:linear-gradient(120deg,#00ACC1,#0D3B45);font-family:inherit}
-  .l5{background:linear-gradient(120deg,#455A64,#1A1A2E)}
+  /* ---------- game cards ---------- */
+  main{position:relative;z-index:2;max-width:1000px;margin:0 auto;padding:5vmin 4vmin 8vmin}
+  .lvlTitle{text-align:center;font-size:clamp(20px,4.2vmin,32px);margin:0 0 4vmin;
+    text-shadow:0 3px 8px rgba(0,0,0,.25);min-height:1.4em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,90vw),1fr));gap:3.5vmin}
+  .gcard{display:flex;flex-direction:column;align-items:center;gap:1.4vmin;text-align:center;
+    text-decoration:none;color:inherit;border-radius:26px;padding:4.5vmin 3vmin;
+    background:var(--cardBg,rgba(255,255,255,.95));color:var(--ink,#D84315);
+    box-shadow:0 10px 26px rgba(0,0,0,.25);
+    opacity:0;transform:translateY(26px) scale(.97);
+    transition:opacity .45s ease,transform .45s ease,box-shadow .25s ease}
+  .gcard.show{opacity:1;transform:translateY(0) scale(1)}
+  .gcard:hover{transform:translateY(-7px) scale(1.02);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+  .gcard .m{font-size:clamp(52px,11vmin,90px);line-height:1;
+    filter:drop-shadow(0 5px 8px rgba(0,0,0,.25))}
+  .gcard:hover .m{animation:hop 1s ease-in-out infinite}
+  .gcard h3{margin:0;font-size:clamp(20px,4.2vmin,30px)}
+  .gcard p{margin:0;font-size:clamp(13px,2.6vmin,16px);opacity:.85;line-height:1.45}
+  .gcard .play{margin-top:1.4vmin;font-size:clamp(14px,2.8vmin,17px);font-weight:bold;
+    background:var(--ink,#D84315);color:#fff;border-radius:100px;padding:1.2vmin 4.5vmin}
 
-  /* ---------- parents strip ---------- */
-  .parents{position:relative;z-index:2;background:#FFF8E1;color:#4E342E;
-    padding:8vmin 5vmin;text-align:center}
-  .parents h2{color:#4E342E;margin-bottom:2vmin}
-  .parents p{max-width:720px;margin:0 auto;font-size:clamp(15px,3vmin,19px);line-height:1.7}
-  .parents .row{display:flex;flex-wrap:wrap;gap:3vmin;justify-content:center;margin-top:5vmin}
-  .pcard{background:#fff;border-radius:20px;padding:3.5vmin;width:min(240px,80vw);
-    box-shadow:0 6px 18px rgba(0,0,0,.08);font-size:clamp(13px,2.7vmin,16px);line-height:1.5}
-  .pcard .ic{font-size:9vmin}
-  .pcard b{display:block;margin:1vmin 0;font-size:clamp(15px,3vmin,18px)}
+  /* dark-mode cards for tween levels */
+  body.dark .gcard{--cardBg:#161B22;background:#161B22;color:#E6EDF3;
+    border:1px solid #30363d}
+  body.dark .gcard .play{background:var(--ink)}
+  body.dark .gcard p{color:#8B949E}
 
-  footer{position:relative;z-index:2;background:#12092E;text-align:center;
-    padding:5vmin;font-size:clamp(12px,2.6vmin,15px);color:#8A7BC0;line-height:1.8}
+  /* ---------- badges + parents ---------- */
+  .badges{position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:1.8vmin;
+    justify-content:center;padding:0 4vmin 4vmin}
+  .badge{font-size:clamp(12px,2.4vmin,15px);background:rgba(0,0,0,.22);
+    border-radius:100px;padding:1vmin 2.8vmin}
+  .parents{position:relative;z-index:2;background:rgba(0,0,0,.25);text-align:center;
+    padding:6vmin 5vmin;font-size:clamp(14px,2.8vmin,17px);line-height:1.7}
+  .parents b{display:block;font-size:clamp(17px,3.4vmin,22px);margin-bottom:1vmin}
+  footer{position:relative;z-index:2;text-align:center;padding:4vmin;
+    font-size:clamp(11px,2.4vmin,14px);opacity:.75;line-height:1.8}
 
-  @media (max-width:600px){
-    .card{flex-direction:column;text-align:center;gap:2vmin}
-    .card .go{display:none}
-  }
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important;transition:none !important}
-    .card{opacity:1;transform:none}
+    .gcard{opacity:1;transform:none}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="heroEmojis"><span>🦖</span><span>🐠</span><span>🚀</span><span>🥷</span><span>🎯</span></div>
-  <h1>MATH QUEST</h1>
-  <p class="tag">Five games. Five levels. From first counts to solving for <i>x</i> —
-  every kid gets a game that feels made for them.</p>
-  <a class="cta" href="#levels">PICK YOUR LEVEL ▼</a>
-  <div class="scrollHint">▼</div>
+  <h1>🎓 MATH QUEST</h1>
+  <p class="tag">Pick your level — every age gets its own world of games.</p>
 </header>
+
+<nav><div class="picker" id="picker"></div></nav>
+
+<main>
+  <h2 class="lvlTitle" id="lvlTitle"></h2>
+  <div class="grid" id="grid"></div>
+</main>
 
 <div class="badges">
   <div class="badge">✅ 100% offline</div>
   <div class="badge">🚫 No ads, ever</div>
   <div class="badge">🔒 No accounts, no data</div>
   <div class="badge">🧠 Adapts to your kid</div>
-  <div class="badge">📖 Open-source & readable</div>
 </div>
 
-<main id="levels">
-  <h2>Choose your adventure</h2>
-  <div class="cards">
-    <a class="card l1" href="games/level-1/feed-the-monster.html">
-      <div class="big">🦖</div>
-      <div class="info">
-        <span class="lvl">LEVEL 1 · AGES 4–5</span>
-        <h3>Feed the Monster</h3>
-        <p>Tap treats to fill a hungry monster — counting 1–10 with zero reading needed.</p>
-      </div>
-      <div class="go">▶</div>
-    </a>
-    <a class="card l2" href="games/level-2/bubble-math.html">
-      <div class="big">🐠</div>
-      <div class="info">
-        <span class="lvl">LEVEL 2 · AGES 6–7</span>
-        <h3>Bubble Math</h3>
-        <p>Pop the bubble with the right answer — addition &amp; subtraction within 20.</p>
-      </div>
-      <div class="go">▶</div>
-    </a>
-    <a class="card l3" href="games/level-3/space-blaster.html">
-      <div class="big">🚀</div>
-      <div class="info">
-        <span class="lvl">LEVEL 3 · AGES 8–9</span>
-        <h3>Space Blaster</h3>
-        <p>Blast the asteroid carrying the right product — times tables 2–9, wave by wave.</p>
-      </div>
-      <div class="go">▶</div>
-    </a>
-    <a class="card l4" href="games/level-4/ninja-numbers.html">
-      <div class="big">🥷</div>
-      <div class="info">
-        <span class="lvl">LEVEL 4 · AGES 10–11</span>
-        <h3>Ninja Numbers</h3>
-        <p>60 seconds, four operations, combo multipliers. Beat your personal best.</p>
-      </div>
-      <div class="go">▶</div>
-    </a>
-    <a class="card l5" href="games/level-5/x-hunter.html">
-      <div class="big">🎯</div>
-      <div class="info">
-        <span class="lvl">LEVEL 5 · AGES 12+</span>
-        <h3>X Hunter</h3>
-        <p>Solve for x and chase the streak — pre-algebra with worked solutions, not lectures.</p>
-      </div>
-      <div class="go">▶</div>
-    </a>
-  </div>
-</main>
-
 <section class="parents">
-  <h2>For parents 👋</h2>
-  <p>Every game is a single file you can read, works with no internet, and hides
-  real practice inside real play. Difficulty adapts silently — streaks nudge it up,
-  stumbles bring it down and quietly re-serve missed questions later.</p>
-  <div class="row">
-    <div class="pcard"><div class="ic">🎓</div><b>Learning inside the fun</b>
-      The math IS the game mechanic — never a quiz interrupting playtime.</div>
-    <div class="pcard"><div class="ic">🌱</div><b>Kind by design</b>
-      No buzzers, no game-overs for little ones. Natural stopping points end
-      screen time without meltdowns.</div>
-    <div class="pcard"><div class="ic">🔧</div><b>Tune it yourself</b>
-      Open any game file — a marked TUNABLES section lets you adjust
-      difficulty in seconds.</div>
-  </div>
+  <b>For parents 👋</b>
+  Every game is one readable file that works with no internet. The math lives
+  inside the play — difficulty adapts silently, misses come back as gentle
+  hints, and every game has natural stopping points and a mute button.
+  Open any game file to find a TUNABLES section you can adjust yourself.
 </section>
 
-<footer>
-  Made with ❤️ for curious kids.<br>
-  No ads · no links out · no tracking · sound is always one tap from off.
-</footer>
+<footer>Made with ❤️ for curious kids · no links out · no tracking</footer>
 
 <script>
 "use strict";
-// floating background symbols
-const SYMBOLS=["＋","−","×","÷","＝","1","2","3","7","9","x","π","★"];
-for(let i=0;i<18;i++){
-  const s=document.createElement("div");
-  s.className="float";
-  s.textContent=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-  s.style.left=Math.random()*96+"vw";
-  s.style.fontSize=(3+Math.random()*5)+"vmin";
-  s.style.animationDuration=(14+Math.random()*22)+"s";
-  s.style.animationDelay=(-Math.random()*30)+"s";
-  document.body.appendChild(s);
+// ---------- level data: each level carries its own design language ----------
+const LEVELS=[
+  {id:1,mascot:"🦖",label:"Level 1",ages:"Ages 4–5",
+   title:"Big buttons, zero reading, pure delight 🌈",
+   bgA:"#FF8A65",bgB:"#E64A19",ink:"#D84315",dark:false,float:["⭐","🍎","🐞","1","2","3"],
+   games:[
+    {m:"🦖",n:"Feed the Monster",d:"Tap treats to feed a hungry friend — counting 1–10.",u:"games/level-1/feed-the-monster.html"},
+    {m:"🔺",n:"Shape Friends",d:"Find the shape the eyes are looking for — shapes & colors.",u:"games/level-1/shape-friends.html"},
+    {m:"🐞",n:"Bug Count",d:"Count the wiggly bugs, tap the right number.",u:"games/level-1/bug-count.html"}]},
+  {id:2,mascot:"🐠",label:"Level 2",ages:"Ages 6–7",
+   title:"Bright worlds, first sums, gentle challenge 🌊",
+   bgA:"#4FC3F7",bgB:"#01579B",ink:"#0277BD",dark:false,float:["🫧","🐟","＋","−","🌊"],
+   games:[
+    {m:"🐠",n:"Bubble Math",d:"Pop the bubble with the right answer — add & subtract within 20.",u:"games/level-2/bubble-math.html"},
+    {m:"🃏",n:"Memory Pairs",d:"Match numbers to their sums — memory meets number bonds.",u:"games/level-2/memory-pairs.html"},
+    {m:"🐘",n:"Pattern Parade",d:"What marches next? Patterns and number sequences.",u:"games/level-2/pattern-parade.html"}]},
+  {id:3,mascot:"🚀",label:"Level 3",ages:"Ages 8–9",
+   title:"Levels, stars, and real skills unlocked 🌟",
+   bgA:"#7C4DFF",bgB:"#311B92",ink:"#5E35B1",dark:false,float:["🪐","✦","×","🚀","☄️"],
+   games:[
+    {m:"🚀",n:"Space Blaster",d:"Shoot the asteroid with the right product — times tables.",u:"games/level-3/space-blaster.html"},
+    {m:"🍕",n:"Pizza Fractions",d:"Name the topped slices — fractions you can taste.",u:"games/level-3/pizza-fractions.html"},
+    {m:"🏎️",n:"Speed Tables",d:"10 questions, race the clock, beat your best time.",u:"games/level-3/speed-tables.html"}]},
+  {id:4,mascot:"🥷",label:"Level 4",ages:"Ages 10–11",
+   title:"Combos, personal bests, hard modes ⚡",
+   bgA:"#0D1117",bgB:"#1c2e4a",ink:"#00ACC1",dark:true,float:["✦","×","÷","%","△"],
+   games:[
+    {m:"🥷",n:"Ninja Numbers",d:"60 seconds. Four operations. Combo multipliers.",u:"games/level-4/ninja-numbers.html"},
+    {m:"⚖️",n:"Fraction Frenzy",d:"Tap the bigger fraction — number sense at speed.",u:"games/level-4/fraction-frenzy.html"},
+    {m:"🛸",n:"Prime Patrol",d:"Zap only the primes. Composites reveal their factors.",u:"games/level-4/prime-patrol.html"}]},
+  {id:5,mascot:"🎯",label:"Level 5",ages:"Ages 12+",
+   title:"Streaks, stats, and zero condescension 🧠",
+   bgA:"#1A1A2E",bgB:"#0D1117",ink:"#FF4081",dark:true,float:["x","=","%","²","π"],
+   games:[
+    {m:"🎯",n:"X Hunter",d:"Solve for x, chase the streak — pre-algebra, no lectures.",u:"games/level-5/x-hunter.html"},
+    {m:"📐",n:"Order of Ops",d:"PEMDAS is the law. Dodge the classic traps.",u:"games/level-5/order-of-ops.html"},
+    {m:"🏷️",n:"Percent Panic",d:"Discounts, tips, and reverse percentages under the clock.",u:"games/level-5/percent-panic.html"}]}
+];
+
+const $=id=>document.getElementById(id);
+let floats=[];
+
+function setFloats(chars){
+  floats.forEach(f=>f.remove()); floats=[];
+  for(let i=0;i<14;i++){
+    const s=document.createElement("div");
+    s.className="float";
+    s.textContent=chars[Math.floor(Math.random()*chars.length)];
+    s.style.left=Math.random()*96+"vw";
+    s.style.fontSize=(3+Math.random()*5)+"vmin";
+    s.style.animationDuration=(14+Math.random()*20)+"s";
+    s.style.animationDelay=(-Math.random()*30)+"s";
+    document.body.appendChild(s); floats.push(s);
+  }
 }
-// reveal cards as they scroll into view
-const io=new IntersectionObserver(es=>es.forEach(e=>{
-  if(e.isIntersecting){e.target.classList.add("show");io.unobserve(e.target);}
-}),{threshold:.15});
-document.querySelectorAll(".card").forEach((c,i)=>{
-  c.style.transitionDelay=(i*80)+"ms"; io.observe(c);
+
+function selectLevel(lv,save=true){
+  document.body.style.setProperty("--bgA",lv.bgA);
+  document.body.style.setProperty("--bgB",lv.bgB);
+  document.body.style.setProperty("--ink",lv.ink);
+  document.body.classList.toggle("dark",lv.dark);
+  setFloats(lv.float);
+  document.querySelectorAll(".lvlBtn").forEach(b=>
+    b.classList.toggle("active",+b.dataset.id===lv.id));
+  $("lvlTitle").textContent=lv.title;
+  const grid=$("grid"); grid.innerHTML="";
+  lv.games.forEach((g,i)=>{
+    const a=document.createElement("a");
+    a.className="gcard"; a.href=g.u;
+    a.innerHTML=`<div class="m">${g.m}</div><h3>${g.n}</h3><p>${g.d}</p>
+      <span class="play">PLAY ▶</span>`;
+    grid.appendChild(a);
+    setTimeout(()=>a.classList.add("show"),80+i*120);
+  });
+  if(save){try{localStorage.setItem("mathQuestLevel",lv.id);}catch(e){}}
+}
+
+// build picker
+LEVELS.forEach(lv=>{
+  const b=document.createElement("button");
+  b.className="lvlBtn"; b.dataset.id=lv.id;
+  b.innerHTML=`<span class="m">${lv.mascot}</span>
+    <span class="l">${lv.label}</span><span class="a">${lv.ages}</span>`;
+  b.addEventListener("click",()=>selectLevel(lv));
+  $("picker").appendChild(b);
 });
+
+// restore last choice (default level 1)
+let startId=1;
+try{startId=+localStorage.getItem("mathQuestLevel")||1;}catch(e){}
+selectLevel(LEVELS.find(l=>l.id===startId)||LEVELS[0],false);
 </script>
 </body>
 </html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Bug Count — Counting (Ages 4–5)</title>
+<!-- BUG COUNT • Level 1 • counting & numeral recognition • offline, no ads, no data -->
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;background:#F1F8E9}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4vmin}
+  .hidden{display:none !important}
+  button{border:none;background:none;font-family:inherit;cursor:pointer;padding:0}
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:6vmin;width:11vmin;height:11vmin;border-radius:50%;
+    background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15);display:flex;
+    align-items:center;justify-content:center}
+  #starbar{font-size:5vmin;background:#fff;border-radius:6vmin;padding:1vmin 3vmin;
+    box-shadow:0 3px 8px rgba(0,0,0,.12)}
+  #titleBug{font-size:24vmin;animation:bounce 1.6s ease-in-out infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3vmin)}}
+  .bigBtn{font-size:15vmin;width:27vmin;height:27vmin;border-radius:50%;
+    background:#69F0AE;box-shadow:0 8px 0 #2eb872,0 12px 20px rgba(0,0,0,.2);
+    display:flex;align-items:center;justify-content:center;
+    animation:breathe 2s ease-in-out infinite}
+  .bigBtn:active{transform:scale(.92)}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+  #meadow{position:absolute;top:16vmin;left:0;right:0;bottom:32vmin}
+  .bug{position:absolute;font-size:12vmin;line-height:1;transition:left 1s ease,top 1s ease;
+    animation:crawl 2.2s ease-in-out infinite;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.15))}
+  @keyframes crawl{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+  .bug.count{animation:none;transform:scale(1.4)}
+  #numRow{position:absolute;bottom:4vmin;left:0;right:0;display:flex;
+    justify-content:center;gap:5vmin}
+  .num{font-size:13vmin;width:20vmin;height:20vmin;border-radius:4vmin;background:#fff;
+    color:#33691E;font-weight:bold;box-shadow:0 6px 0 #c5e1a5,0 10px 16px rgba(0,0,0,.12);
+    display:flex;align-items:center;justify-content:center}
+  .num:active{transform:scale(.94)}
+  .num.no{animation:shakeNo .5s ease;background:#FFF3E0}
+  @keyframes shakeNo{0%,100%{transform:translateX(0)}25%{transform:translateX(-2vmin)}
+    75%{transform:translateX(2vmin)}}
+  .num.yes{background:#69F0AE;transform:scale(1.15)}
+  .particle{position:absolute;pointer-events:none;font-size:5vmin;line-height:1;z-index:20}
+  #breakStars{font-size:12vmin;letter-spacing:1vmin}
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:#fff;border-radius:4vmin;padding:5vmin;max-width:80vmin;
+    font-size:3.4vmin;line-height:1.5;color:#37474f}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.5vmin;color:#558B2F}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="topbar">
+    <button id="infoBtn">ⓘ</button>
+    <div id="starbar">⭐ <span id="starCount">0</span></div>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <div id="titleBug">🐞</div>
+    <button id="playBtn" class="bigBtn">▶</button>
+  </div>
+
+  <div id="gameScreen" class="screen hidden">
+    <div id="meadow"></div>
+    <div id="numRow"></div>
+  </div>
+
+  <div id="breakScreen" class="screen hidden">
+    <div style="font-size:20vmin;animation:bounce 1.4s ease-in-out infinite">🦋</div>
+    <div id="breakStars"></div>
+    <button id="againBtn" class="bigBtn" style="background:#FFD740;box-shadow:0 8px 0 #d4a900,0 12px 20px rgba(0,0,0,.2)">▶</button>
+  </div>
+
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      Practices <b>counting and numeral recognition</b>: count the bugs, tap
+      the matching number. If your child picks a different number, the bugs
+      line up in a neat row and are counted aloud one by one — then the same
+      question is asked again. No losing, no timers. Grows from 3 bugs to 10.
+      <br><br>✅ Fully offline • no ads • no links • no data collected.<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const START_MAX=3, TOP_MAX=10, ROUNDS_PER_SET=5, SPEAK=true;
+const BUGS=["🐞","🐛","🐝","🦗","🐜","🦋"];
+const NUM_WORDS=["zero","one","two","three","four","five","six","seven","eight","nine","ten"];
+
+let state="title", round=0, stars=0, streak=0, maxN=START_MAX, muted=false;
+let answer=0, bugs=[];
+const $=id=>document.getElementById(id);
+
+let actx;
+function sound(f,d=.15,t="sine",v=.2){
+  if(muted)return;
+  try{actx??=new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);}catch(e){}
+}
+const winSnd=()=>[523,659,784].forEach((f,i)=>setTimeout(()=>sound(f,.18),i*90));
+function speak(txt){
+  if(muted||!SPEAK||!window.speechSynthesis)return;
+  try{const u=new SpeechSynthesisUtterance(txt);u.rate=.85;u.pitch=1.3;
+    speechSynthesis.speak(u);}catch(e){}
+}
+
+const pool=[];
+for(let i=0;i<30;i++){const p=document.createElement("div");
+  p.className="particle hidden";$("stage").appendChild(p);pool.push(p);}
+let pi=0;
+function burst(x,y,chars,n=10){
+  for(let i=0;i<n;i++){
+    const p=pool[pi=(pi+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const a=Math.random()*Math.PI*2,d=8+Math.random()*12;
+    p.style.left=x+"px";p.style.top=y+"px";
+    p.style.transition="none";p.style.opacity="1";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .8s ease-out";
+      p.style.left=(x+Math.cos(a)*d*innerWidth/100)+"px";
+      p.style.top=(y+Math.sin(a)*d*innerHeight/100)+"px";
+      p.style.opacity="0";}));
+  }
+}
+
+const r=n=>Math.floor(Math.random()*n);
+
+function newRound(){
+  state="playing"; round++;
+  answer=1+r(maxN);
+  const bugEmoji=BUGS[r(BUGS.length)];
+  const meadow=$("meadow"); meadow.innerHTML=""; bugs=[];
+  const placed=[];
+  for(let i=0;i<answer;i++){
+    const b=document.createElement("div");
+    b.className="bug"; b.textContent=bugEmoji;
+    let x,y,tries=0;
+    do{x=5+Math.random()*78; y=5+Math.random()*72; tries++;}
+    while(tries<50&&placed.some(p=>Math.abs(p.x-x)<15&&Math.abs(p.y-y)<18));
+    placed.push({x,y});
+    b.style.left=x+"%"; b.style.top=y+"%";
+    b.style.animationDelay=(Math.random()*2)+"s";
+    meadow.appendChild(b); bugs.push(b);
+  }
+  // three numeral choices including the answer
+  const opts=new Set([answer]);
+  while(opts.size<3){const d=Math.max(1,Math.min(TOP_MAX,answer+(r(5)-2)));
+    if(d!==answer)opts.add(d);}
+  const row=$("numRow"); row.innerHTML="";
+  [...opts].sort((a,b)=>a-b).forEach(v=>{
+    const btn=document.createElement("button");
+    btn.className="num"; btn.textContent=v;
+    btn.addEventListener("pointerdown",e=>{e.stopPropagation();pick(v,btn);});
+    row.appendChild(btn);
+  });
+  $("titleScreen").classList.add("hidden");
+  $("breakScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+}
+
+function pick(v,btn){
+  if(state!=="playing")return;
+  if(v===answer){
+    state="waiting"; stars++; streak++;
+    $("starCount").textContent=stars;
+    btn.classList.add("yes");
+    winSnd(); speak(NUM_WORDS[answer]+" bugs!");
+    const rect=btn.getBoundingClientRect();
+    burst(rect.left+rect.width/2,rect.top,["⭐","✨","🎉"],12);
+    bugs.forEach((b,i)=>setTimeout(()=>{b.style.transform="scale(1.3)";},i*100));
+    if(streak%3===0&&maxN<TOP_MAX)maxN=Math.min(TOP_MAX,maxN+2);
+    setTimeout(()=> round%ROUNDS_PER_SET===0?showBreak():newRound(),1500);
+  }else{
+    sound(220,.2,"triangle",.15); streak=0;
+    btn.classList.remove("no");void btn.offsetWidth;btn.classList.add("no");
+    // helpful hint: line the bugs up and count them aloud
+    state="counting";
+    bugs.forEach((b,i)=>{
+      b.style.left=(50-(bugs.length-1)*6+i*12-4)+"%";
+      b.style.top="42%";
+      setTimeout(()=>{
+        b.classList.add("count");
+        sound(440+i*60,.15); speak(NUM_WORDS[i+1]);
+        setTimeout(()=>b.classList.remove("count"),450);
+      },1100+i*650);
+    });
+    setTimeout(()=>{state="playing";},1100+bugs.length*650);
+  }
+}
+
+function showBreak(){
+  state="break";
+  $("breakStars").textContent="⭐".repeat(5);
+  $("gameScreen").classList.add("hidden");
+  $("breakScreen").classList.remove("hidden");
+}
+
+$("playBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.12);newRound();});
+$("againBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.12);newRound();});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";
+  if(muted&&window.speechSynthesis)speechSynthesis.cancel();});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.remove("hidden");});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.add("hidden");});
+$("stage").addEventListener("pointerdown",e=>{
+  if(state==="playing"){burst(e.clientX,e.clientY,["✨"],3);}});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+</script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Percent Panic — Percentages (Ages 12+)</title>
+<!-- PERCENT PANIC • Level 5 • percentages & discounts • offline, no ads, no data -->
+<style>
+  :root{--bg:#0D1117;--panel:#161B22;--accent:#FFD740;--good:#76FF03;--bad:#FF4081;--txt:#E6EDF3}
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:"Courier New",monospace;background:var(--bg);color:var(--txt)}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:3.5vmin;z-index:5}
+  .hidden{display:none !important}
+  button{border:none;font-family:inherit;cursor:pointer;color:inherit;background:none}
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:4.5vmin;width:9vmin;height:9vmin;border-radius:2vmin;
+    background:var(--panel);display:flex;align-items:center;justify-content:center;
+    border:1px solid #30363d}
+  h1{font-size:8vmin;margin:0;color:var(--accent);text-shadow:0 0 3vmin rgba(255,215,64,.4)}
+  .sub{color:#8B949E;font-size:3.6vmin;text-align:center;line-height:1.6}
+  .neonBtn{font-size:5.5vmin;padding:2.5vmin 8vmin;border-radius:2vmin;
+    background:var(--panel);border:.4vmin solid var(--accent);color:var(--accent);
+    box-shadow:0 0 3vmin rgba(255,215,64,.25)}
+  .neonBtn:active{transform:scale(.95)}
+  #hardBtn{border-color:var(--bad);color:var(--bad);font-size:4.2vmin;padding:1.8vmin 5vmin}
+  #hardBtn.on{background:var(--bad);color:#000}
+  #timerWrap{position:absolute;top:0;left:0;right:0;height:2vmin;background:var(--panel)}
+  #timerBar{height:100%;background:linear-gradient(90deg,var(--good),var(--accent));
+    width:100%;transition:width .2s linear}
+  #gameHud{position:absolute;top:4.5vmin;left:0;right:0;display:flex;
+    justify-content:center;gap:6vmin;font-size:4.5vmin}
+  #combo{color:var(--bad)} #gscore{color:var(--good)}
+  #scenario{font-size:4.6vmin;color:#8B949E;min-height:6vmin;text-align:center;
+    max-width:86vw}
+  #question{font-size:11vmin;font-weight:bold;color:var(--txt);
+    text-shadow:0 0 4vmin rgba(255,215,64,.3);text-align:center}
+  #question.hit{animation:hit .3s ease}
+  @keyframes hit{40%{transform:scale(1.1);color:var(--good)}}
+  #question.miss{animation:miss .35s ease}
+  @keyframes miss{25%{transform:translateX(-2vmin)}75%{transform:translateX(2vmin)}}
+  #hint{font-size:3.9vmin;color:#8B949E;min-height:5.5vmin;opacity:0;transition:opacity .3s}
+  #answers{display:grid;grid-template-columns:1fr 1fr;gap:3vmin;width:min(80vmin,90vw)}
+  .ans{font-size:7vmin;padding:3.5vmin 0;border-radius:2.5vmin;background:var(--panel);
+    border:.35vmin solid #30363d;text-align:center}
+  .ans:active{border-color:var(--accent)}
+  .particle{position:absolute;pointer-events:none;font-size:4.5vmin;z-index:20}
+  #endTitle{font-size:7vmin;color:var(--accent)}
+  .stat{font-size:5vmin}
+  .stat b{color:var(--good)}
+  #newBest{color:var(--bad);font-size:5.5vmin}
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:var(--panel);border:1px solid #30363d;border-radius:3vmin;
+    padding:5vmin;max-width:82vmin;font-size:3.3vmin;line-height:1.55;color:var(--txt)}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.4vmin;color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="topbar">
+    <button id="infoBtn">ⓘ</button>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <h1>PERCENT PANIC</h1>
+    <div class="sub">Sales, tips, and sneaky reverse percentages.<br>90 seconds on the clock.</div>
+    <div class="sub" id="bestLine"></div>
+    <button id="hardBtn" class="neonBtn">🌶️ HARD: OFF</button>
+    <button id="playBtn" class="neonBtn">START ▶</button>
+  </div>
+
+  <div id="gameScreen" class="screen hidden">
+    <div id="timerWrap"><div id="timerBar"></div></div>
+    <div id="gameHud"><span id="gscore">0</span><span id="combo">×1</span></div>
+    <div id="scenario">🛍️ FLASH SALE</div>
+    <div id="question">25% of 80?</div>
+    <div id="hint"></div>
+    <div id="answers"></div>
+  </div>
+
+  <div id="endScreen" class="screen hidden">
+    <div id="endTitle">TIME!</div>
+    <div class="stat">Score: <b id="endScore">0</b></div>
+    <div class="stat">Solved: <b id="endSolved">0</b></div>
+    <div id="newBest" class="hidden">🏅 NEW PERSONAL BEST</div>
+    <div class="stat sub" id="endBest"></div>
+    <button id="againBtn" class="neonBtn">RUN IT BACK ▶</button>
+  </div>
+
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      Practices <b>percentages in real-world form</b> — discounts, tips, tax,
+      and (hard mode) reverse percentages ("36 is 30% of what?"). These are
+      the percent skills people actually use. Wrong answers reveal the
+      shortcut (10% first, then scale). Bests saved on this device only.
+      <br><br>✅ Fully offline • no ads • no links • no data collected.<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const ROUND_SECONDS=90, BASE_POINTS=10, MAX_COMBO=5, HINT_MS=3200;
+
+let state="title", hard=false, muted=false;
+let timeLeft=0, score=0, combo=1, solved=0, answer=0, current=null;
+let best={normal:0,hard:0};
+const $=id=>document.getElementById(id);
+try{best=JSON.parse(localStorage.getItem("percentPanicBest"))||best;}catch(e){}
+showBest();
+function showBest(){
+  const b=hard?best.hard:best.normal;
+  $("bestLine").textContent=b?`Personal best (${hard?"hard":"normal"}): ${b}`:"";
+}
+
+let actx;
+function sound(f,d=.12,t="square",v=.15){
+  if(muted)return;
+  try{actx??=new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);}catch(e){}
+}
+const hitSnd=()=>{sound(880,.08);setTimeout(()=>sound(1320,.1),50);};
+const missSnd=()=>sound(140,.2,"sawtooth",.12);
+const endSnd=()=>[392,523,659,784].forEach((f,i)=>setTimeout(()=>sound(f,.18,"triangle"),i*110));
+
+const pool=[];
+for(let i=0;i<20;i++){const p=document.createElement("div");
+  p.className="particle hidden";$("stage").appendChild(p);pool.push(p);}
+let pi=0;
+function burst(x,y,chars,n=7){
+  for(let i=0;i<n;i++){
+    const p=pool[pi=(pi+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const a=Math.random()*Math.PI*2,d=6+Math.random()*10;
+    p.style.left=x+"px";p.style.top=y+"px";
+    p.style.transition="none";p.style.opacity="1";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .6s ease-out";
+      p.style.left=(x+Math.cos(a)*d*innerWidth/100)+"px";
+      p.style.top=(y+Math.sin(a)*d*innerHeight/100)+"px";
+      p.style.opacity="0";}));
+  }
+}
+
+const r=n=>Math.floor(Math.random()*n);
+const pctList=[10,20,25,50,5,75,30,40,60,15];
+
+function makeProblem(){
+  const kind=hard?r(4):r(2);
+  if(kind===0){                          // straight: p% of N
+    const p=pctList[r(pctList.length)];
+    const N=(4+r(16))*20;                // multiples of 20 → clean answers
+    return {scen:"🧮 QUICK CALC",txt:`${p}% of ${N}?`,ans:N*p/100,
+      hint:`10% of ${N} is ${N/10} — scale from there`};
+  }
+  if(kind===1){                          // discount: price after p% off
+    const p=[10,20,25,50][r(4)];
+    const N=(2+r(8))*20;
+    return {scen:"🛍️ FLASH SALE",txt:`$${N} at ${p}% off?`,ans:N-N*p/100,
+      hint:`${p}% of ${N} = ${N*p/100} — subtract it`};
+  }
+  if(kind===2){                          // tip: price + p%
+    const p=[10,15,20][r(3)];
+    const N=(2+r(8))*20;
+    return {scen:"🍔 ADD THE TIP",txt:`$${N} + ${p}% tip?`,ans:N+N*p/100,
+      hint:`${p}% of ${N} = ${N*p/100} — add it on`};
+  }
+  // reverse: A is p% of what?
+  const p=[20,25,50,10,30][r(5)];
+  const X=(2+r(10))*10;
+  return {scen:"🔍 REVERSE IT",txt:`${X*p/100} is ${p}% of what?`,ans:X,
+    hint:`divide by ${p}, multiply by 100`};
+}
+
+function newQuestion(){
+  current=makeProblem(); answer=current.ans;
+  $("scenario").textContent=current.scen;
+  $("question").textContent=current.txt;
+  $("hint").style.opacity=0;
+  const opts=new Set([answer]);
+  while(opts.size<4){
+    const deltas=[answer*.1,-answer*.1,answer*.25,-answer*.25,10,-10,5,-5];
+    const d=Math.round(answer+deltas[r(deltas.length)]);
+    if(d>0&&d!==answer)opts.add(d);
+  }
+  const wrap=$("answers"); wrap.innerHTML="";
+  [...opts].sort(()=>Math.random()-.5).forEach(v=>{
+    const b=document.createElement("button");
+    b.className="ans"; b.textContent=v;
+    b.addEventListener("pointerdown",e=>{e.stopPropagation();pick(v,b);});
+    wrap.appendChild(b);
+  });
+}
+
+function pick(v,btn){
+  if(state!=="playing")return;
+  const rect=btn.getBoundingClientRect();
+  if(v===answer){
+    hitSnd(); solved++;
+    score+=BASE_POINTS*combo;
+    combo=Math.min(MAX_COMBO,combo+1);
+    burst(rect.left+rect.width/2,rect.top,["✦","%","+"],6);
+    $("question").classList.remove("hit");void $("question").offsetWidth;
+    $("question").classList.add("hit");
+    $("gscore").textContent=score; $("combo").textContent="×"+combo;
+    newQuestion();
+  }else{
+    missSnd(); combo=1;
+    $("question").classList.remove("miss");void $("question").offsetWidth;
+    $("question").classList.add("miss");
+    $("gscore").textContent=score; $("combo").textContent="×1";
+    $("hint").textContent="💡 "+current.hint+` → ${answer}`;
+    $("hint").style.opacity=1;
+    state="hint";
+    setTimeout(()=>{if(state==="hint"){state="playing";newQuestion();}},HINT_MS);
+  }
+}
+
+let lastT=0;
+function frame(t){
+  if(state==="playing"||state==="hint"){
+    const dt=Math.min((t-lastT)/1000,.05);
+    timeLeft-=dt;
+    $("timerBar").style.width=Math.max(0,timeLeft/ROUND_SECONDS*100)+"%";
+    if(timeLeft<=0)endRound();
+  }
+  lastT=t;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+function startRound(){
+  state="playing"; score=0; combo=1; solved=0; timeLeft=ROUND_SECONDS;
+  $("gscore").textContent=0; $("combo").textContent="×1";
+  $("titleScreen").classList.add("hidden");
+  $("endScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  newQuestion();
+}
+function endRound(){
+  state="end"; endSnd();
+  $("endScore").textContent=score; $("endSolved").textContent=solved;
+  const key=hard?"hard":"normal";
+  if(score>best[key]){best[key]=score;$("newBest").classList.remove("hidden");
+    try{localStorage.setItem("percentPanicBest",JSON.stringify(best));}catch(e){}}
+  else $("newBest").classList.add("hidden");
+  $("endBest").textContent=`Best (${key}): ${best[key]}`;
+  $("gameScreen").classList.add("hidden");
+  $("endScreen").classList.remove("hidden");
+}
+
+$("playBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.1);startRound();});
+$("againBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.1);startRound();});
+$("hardBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();hard=!hard;sound(hard?300:500,.1);
+  $("hardBtn").textContent=`🌶️ HARD: ${hard?"ON":"OFF"}`;
+  $("hardBtn").classList.toggle("on",hard);showBest();});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.remove("hidden");});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.add("hidden");});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+</script>
+</body>
+</html>

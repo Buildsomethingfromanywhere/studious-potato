@@ -6,13 +6,27 @@ Open `index.html` for a launcher page, or run any game directly.
 
 ## The games
 
-| Level | Game | Ages | Skill | File |
-|-------|------|------|-------|------|
-| 1 | 🦖 Feed the Monster | 4–5 | Counting 1–10, number recognition | `games/level-1/feed-the-monster.html` |
-| 2 | 🐠 Bubble Math | 6–7 | Addition & subtraction within 20 | `games/level-2/bubble-math.html` |
-| 3 | 🚀 Space Blaster | 8–9 | Multiplication tables 2–9 | `games/level-3/space-blaster.html` |
-| 4 | 🥷 Ninja Numbers | 10–11 | Mixed-operation mental-math fluency | `games/level-4/ninja-numbers.html` |
-| 5 | 🎯 X Hunter | 12+ | Pre-algebra: solve for x | `games/level-5/x-hunter.html` |
+| Level | Ages | Game | Skill |
+|-------|------|------|-------|
+| 1 | 4–5 | 🦖 Feed the Monster | Counting 1–10, number recognition |
+| 1 | 4–5 | 🔺 Shape Friends | Shape & color recognition |
+| 1 | 4–5 | 🐞 Bug Count | Counting & numeral matching |
+| 2 | 6–7 | 🐠 Bubble Math | Addition & subtraction within 20 |
+| 2 | 6–7 | 🃏 Memory Pairs | Number bonds + working memory |
+| 2 | 6–7 | 🐘 Pattern Parade | Patterns & number sequences |
+| 3 | 8–9 | 🚀 Space Blaster | Multiplication tables 2–9 |
+| 3 | 8–9 | 🍕 Pizza Fractions | Fractions (visual) & equivalents |
+| 3 | 8–9 | 🏎️ Speed Tables | Times-table fluency vs. the clock |
+| 4 | 10–11 | 🥷 Ninja Numbers | Mixed-operation speed math |
+| 4 | 10–11 | ⚖️ Fraction Frenzy | Comparing fractions |
+| 4 | 10–11 | 🛸 Prime Patrol | Primes & factorization |
+| 5 | 12+ | 🎯 X Hunter | Pre-algebra: solve for x |
+| 5 | 12+ | 📐 Order of Ops | PEMDAS / order of operations |
+| 5 | 12+ | 🏷️ Percent Panic | Percentages, discounts, reverse % |
+
+Files live at `games/level-N/<game-name>.html`. The landing page (`index.html`)
+has a level picker that groups games by age band, each with its own design
+language (bright primaries for 4–5, coordinated themes for 6–9, dark neon for 10+).
 
 ## Design principles (shared by all games)
 

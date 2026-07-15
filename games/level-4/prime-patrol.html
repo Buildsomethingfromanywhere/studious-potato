@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Prime Patrol — Prime Numbers (Ages 10–11)</title>
+<!-- PRIME PATROL • Level 4 • primes & factors • offline, no ads, no data -->
+<style>
+  :root{--bg:#1A1A2E;--panel:#232342;--cyan:#00E5FF;--lime:#76FF03;--pink:#FF4081;--txt:#E6EDF3}
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:"Courier New",monospace;background:var(--bg);color:var(--txt)}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:3.5vmin;z-index:5}
+  .hidden{display:none !important}
+  button{border:none;font-family:inherit;cursor:pointer;color:inherit;background:none}
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:4.5vmin;width:9vmin;height:9vmin;border-radius:2vmin;
+    background:var(--panel);display:flex;align-items:center;justify-content:center;
+    border:1px solid #3A3A5E}
+  h1{font-size:8vmin;margin:0;color:var(--lime);text-shadow:0 0 3vmin rgba(118,255,3,.4)}
+  .sub{color:#9A9AB8;font-size:3.6vmin;text-align:center;line-height:1.6}
+  .neonBtn{font-size:5.5vmin;padding:2.5vmin 8vmin;border-radius:2vmin;
+    background:var(--panel);border:.4vmin solid var(--lime);color:var(--lime);
+    box-shadow:0 0 3vmin rgba(118,255,3,.25)}
+  .neonBtn:active{transform:scale(.95)}
+  #gameHud{position:absolute;top:4.5vmin;left:0;right:0;display:flex;
+    justify-content:center;gap:6vmin;font-size:4.5vmin;z-index:10}
+  #gscore{color:var(--lime)} #lives{color:var(--pink)}
+  .drone{position:absolute;width:16vmin;height:16vmin;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#3A3A6E,#232342 70%);
+    border:.45vmin solid #4A4A7E;display:flex;align-items:center;justify-content:center;
+    font-size:6.5vmin;font-weight:bold;color:var(--txt);
+    box-shadow:0 0 2vmin rgba(0,229,255,.15)}
+  .drone.zap{transition:all .3s;transform:scale(1.6);opacity:0;color:var(--lime)}
+  .drone.wrongZap{transition:all .4s;border-color:var(--pink);color:var(--pink)}
+  #factHint{position:absolute;bottom:12vmin;left:0;right:0;text-align:center;
+    font-size:5.2vmin;color:var(--pink);min-height:7vmin;z-index:10}
+  .particle{position:absolute;pointer-events:none;font-size:4.5vmin;z-index:20}
+  #endTitle{font-size:7vmin;color:var(--lime)}
+  .stat{font-size:5vmin}
+  .stat b{color:var(--cyan)}
+  #newBest{color:var(--pink);font-size:5.5vmin}
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:var(--panel);border-radius:3vmin;padding:5vmin;max-width:82vmin;
+    font-size:3.3vmin;line-height:1.55}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.4vmin;color:var(--lime)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="topbar">
+    <button id="infoBtn">ⓘ</button>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <h1>PRIME PATROL</h1>
+    <div class="sub">Rogue number-drones incoming.<br>
+      Zap ONLY the primes. Composites show their factors — that's the tell.<br>
+      3 shields. How long can you patrol?</div>
+    <div class="sub" id="bestLine"></div>
+    <button id="playBtn" class="neonBtn">PATROL ▶</button>
+  </div>
+
+  <div id="gameScreen" class="screen hidden">
+    <div id="gameHud"><span id="gscore">0</span><span id="lives">🛡🛡🛡</span></div>
+    <div id="factHint"></div>
+  </div>
+
+  <div id="endScreen" class="screen hidden">
+    <div id="endTitle">PATROL OVER</div>
+    <div class="stat">Score: <b id="endScore">0</b></div>
+    <div class="stat">Primes zapped: <b id="endZapped">0</b></div>
+    <div id="newBest" class="hidden">🏅 NEW PERSONAL BEST</div>
+    <div class="stat sub" id="endBest"></div>
+    <button id="againBtn" class="neonBtn">RE-DEPLOY ▶</button>
+  </div>
+
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      Teaches <b>prime numbers and factoring</b>. Zapping a composite isn't
+      just "wrong" — the drone flashes its factorization (21 = 3 × 7), which
+      is exactly how you learn to spot primes. Speed ramps up slowly; three
+      shields keep runs long enough to build intuition. Bests saved on this
+      device only.
+      <br><br>✅ Fully offline • no ads • no links • no data collected.<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const START_SPEED=5, SPEED_RAMP=0.25, MAX_DRONES=4, SHIELDS=3, POINTS=15;
+
+let state="title", muted=false;
+let score=0, zapped=0, shields=SHIELDS, speed=START_SPEED, best=0;
+let drones=[], spawnT=0;
+const $=id=>document.getElementById(id);
+const gameScreen=$("gameScreen");
+try{best=+localStorage.getItem("primePatrolBest")||0;}catch(e){}
+if(best)$("bestLine").textContent="Personal best: "+best;
+
+let actx;
+function sound(f,d=.12,t="square",v=.15){
+  if(muted)return;
+  try{actx??=new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);}catch(e){}
+}
+const zapSnd=()=>{sound(1400,.06,"sawtooth",.1);setTimeout(()=>sound(900,.08,"sawtooth",.1),40);};
+const wrongSnd=()=>sound(130,.3,"sawtooth",.15);
+const endSnd=()=>[523,392,330,262].forEach((f,i)=>setTimeout(()=>sound(f,.2,"triangle"),i*130));
+
+const pool=[];
+for(let i=0;i<24;i++){const p=document.createElement("div");
+  p.className="particle hidden";$("stage").appendChild(p);pool.push(p);}
+let pi=0;
+function burst(x,y,chars,n=8){
+  for(let i=0;i<n;i++){
+    const p=pool[pi=(pi+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const a=Math.random()*Math.PI*2,d=6+Math.random()*11;
+    p.style.left=x+"px";p.style.top=y+"px";
+    p.style.transition="none";p.style.opacity="1";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .6s ease-out";
+      p.style.left=(x+Math.cos(a)*d*innerWidth/100)+"px";
+      p.style.top=(y+Math.sin(a)*d*innerHeight/100)+"px";
+      p.style.opacity="0";}));
+  }
+}
+
+const r=n=>Math.floor(Math.random()*n);
+function isPrime(n){
+  if(n<2)return false;
+  for(let i=2;i*i<=n;i++)if(n%i===0)return false;
+  return true;
+}
+function smallestFactor(n){
+  for(let i=2;i*i<=n;i++)if(n%i===0)return i;
+  return n;
+}
+
+function spawnDrone(){
+  // ~45% primes so both actions stay live
+  let v;
+  if(Math.random()<.45){
+    const primes=[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47];
+    v=primes[r(primes.length)];
+  }else{
+    do{v=4+r(46);}while(isPrime(v));
+  }
+  const el=document.createElement("div");
+  el.className="drone"; el.textContent=v;
+  const x=6+Math.random()*76;
+  el.style.left=x+"vw"; el.style.top="-18vh";
+  const d={el,v,x,y:-18,dead:false};
+  el.addEventListener("pointerdown",e=>{e.stopPropagation();zap(d);});
+  gameScreen.appendChild(el); drones.push(d);
+}
+
+function zap(d){
+  if(state!=="playing"||d.dead)return;
+  d.dead=true;
+  const rect=d.el.getBoundingClientRect();
+  if(isPrime(d.v)){
+    zapSnd(); score+=POINTS; zapped++;
+    d.el.classList.add("zap");
+    burst(rect.left+rect.width/2,rect.top+rect.height/2,["⚡","✦","💥"],10);
+    speed+=SPEED_RAMP*0.3;
+  }else{
+    wrongSnd(); loseShield();
+    d.el.classList.add("wrongZap");
+    const f=smallestFactor(d.v);
+    $("factHint").textContent=`${d.v} = ${f} × ${d.v/f} — not prime!`;
+    setTimeout(()=>{if(state==="playing")$("factHint").textContent="";},2200);
+    setTimeout(()=>{d.el.classList.add("zap");},350);
+  }
+  $("gscore").textContent=score;
+  setTimeout(()=>{d.el.remove();drones=drones.filter(x=>x!==d);},500);
+}
+
+function loseShield(){
+  shields--;
+  $("lives").textContent="🛡".repeat(shields)+"✖".repeat(SHIELDS-shields);
+  if(shields<=0)endRun();
+}
+
+let last=0;
+function frame(t){
+  const dt=Math.min((t-last)/1000,.05); last=t;
+  if(state==="playing"){
+    spawnT-=dt;
+    if(spawnT<=0&&drones.length<MAX_DRONES){
+      spawnDrone(); spawnT=1.3+Math.random();
+    }
+    for(const d of drones){
+      if(d.dead)continue;
+      d.y+=speed*dt;
+      d.el.style.top=d.y+"vh";
+      if(d.y>96){                                  // escaped
+        d.dead=true;
+        if(isPrime(d.v)){                          // letting a prime escape costs a shield
+          wrongSnd();
+          $("factHint").textContent=`${d.v} was prime! It got away…`;
+          setTimeout(()=>{if(state==="playing")$("factHint").textContent="";},1800);
+          loseShield();
+        }
+        d.el.remove(); drones=drones.filter(x=>x!==d);
+      }
+    }
+    speed+=SPEED_RAMP*dt*0.1;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+function startRun(){
+  state="playing"; score=0; zapped=0; shields=SHIELDS; speed=START_SPEED; spawnT=0;
+  drones.forEach(d=>d.el.remove()); drones=[];
+  $("gscore").textContent=0;
+  $("lives").textContent="🛡".repeat(SHIELDS);
+  $("factHint").textContent="";
+  $("titleScreen").classList.add("hidden");
+  $("endScreen").classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+}
+
+function endRun(){
+  state="end"; endSnd();
+  $("endScore").textContent=score; $("endZapped").textContent=zapped;
+  if(score>best){best=score;$("newBest").classList.remove("hidden");
+    try{localStorage.setItem("primePatrolBest",best);}catch(e){}}
+  else $("newBest").classList.add("hidden");
+  $("endBest").textContent="Best: "+best;
+  setTimeout(()=>{
+    gameScreen.classList.add("hidden");
+    $("endScreen").classList.remove("hidden");
+  },600);
+}
+
+$("playBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.1);startRun();});
+$("againBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.1);startRun();});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.remove("hidden");});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.add("hidden");});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+</script>
+</body>
+</html>

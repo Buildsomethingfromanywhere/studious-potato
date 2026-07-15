@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Pizza Fractions — Fractions (Ages 8–9)</title>
+<!-- PIZZA FRACTIONS • Level 3 • fractions • offline, no ads, no data -->
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
+    background:linear-gradient(#FFCC80,#E65100)}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4vmin}
+  .hidden{display:none !important}
+  button{border:none;background:none;font-family:inherit;cursor:pointer;padding:0}
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:5vmin;width:9vmin;height:9vmin;border-radius:50%;
+    background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.2);display:flex;
+    align-items:center;justify-content:center}
+  #hud{font-size:4.2vmin;color:#BF360C;background:#fff;
+    border-radius:6vmin;padding:1vmin 3vmin;display:flex;gap:3vmin}
+  h1{color:#fff;font-size:8vmin;margin:0;text-shadow:0 3px 6px rgba(0,0,0,.3)}
+  #titlePizza{font-size:22vmin;animation:spin 8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .bigBtn{font-size:12vmin;width:24vmin;height:24vmin;border-radius:50%;
+    background:#FFEB3B;box-shadow:0 7px 0 #c8b900,0 12px 20px rgba(0,0,0,.25);
+    display:flex;align-items:center;justify-content:center;
+    animation:breathe 2s ease-in-out infinite}
+  .bigBtn:active{transform:scale(.92)}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  #prompt{font-size:6vmin;color:#fff;text-shadow:0 2px 5px rgba(0,0,0,.35);min-height:8vmin}
+  #pizzaWrap{position:relative;width:52vmin;height:52vmin}
+  #pizza{width:100%;height:100%;border-radius:50%;border:2.2vmin solid #D84315;
+    box-shadow:0 8px 20px rgba(0,0,0,.3);transition:transform .3s}
+  #pizza.wob{animation:wob .5s ease}
+  @keyframes wob{25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+  #choices{display:flex;gap:4vmin;flex-wrap:wrap;justify-content:center}
+  .choice{width:19vmin;height:19vmin;border-radius:3.5vmin;background:#fff;
+    box-shadow:0 5px 0 rgba(0,0,0,.18),0 9px 14px rgba(0,0,0,.18);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:bold;color:#BF360C;line-height:1}
+  .choice .top{font-size:6.5vmin;border-bottom:.55vmin solid #BF360C;padding:0 2.2vmin 0.6vmin}
+  .choice .bot{font-size:6.5vmin;padding-top:.6vmin}
+  .choice:active{transform:scale(.94)}
+  .choice.no{animation:shakeNo .5s ease}
+  @keyframes shakeNo{25%{transform:translateX(-2vmin)}75%{transform:translateX(2vmin)}}
+  .choice.yes{background:#C8E6C9;transform:scale(1.1)}
+  .particle{position:absolute;pointer-events:none;font-size:5vmin;line-height:1;z-index:20}
+  #waveStars{font-size:11vmin;letter-spacing:1vmin;color:#fff}
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:#fff;border-radius:4vmin;padding:5vmin;max-width:80vmin;
+    font-size:3.4vmin;line-height:1.5;color:#37474f}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.5vmin;color:#E65100}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="topbar">
+    <button id="infoBtn">ⓘ</button>
+    <div id="hud">⭐ <span id="starCount">0</span> 🔥 <span id="streakCount">0</span></div>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <div id="titlePizza">🍕</div>
+    <h1>Pizza Fractions</h1>
+    <button id="playBtn" class="bigBtn">▶</button>
+  </div>
+
+  <div id="gameScreen" class="screen hidden">
+    <div id="prompt">How much pizza has toppings?</div>
+    <div id="pizzaWrap"><div id="pizza"></div></div>
+    <div id="choices"></div>
+  </div>
+
+  <div id="breakScreen" class="screen hidden">
+    <div style="font-size:18vmin">👨‍🍳</div>
+    <div id="waveStars"></div>
+    <button id="againBtn" class="bigBtn">▶</button>
+  </div>
+
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      Practices <b>fractions</b> visually: a pizza is divided into slices and
+      your child names the topped fraction. Starts with halves and quarters,
+      advances to thirds, sixths, and eighths, then mixes in <b>equivalent
+      fractions</b> (2/4 shown as a choice for 1/2). A wrong answer makes the
+      pizza pulse its slices one by one — counting them out.
+      <br><br>✅ Fully offline • no ads • no links • no data collected.<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const ROUNDS_PER_SET=8, STREAK_UP=3;
+
+let state="title", level=1, round=0, stars=0, streak=0, muted=false;
+let num=1, den=2;   // current fraction
+const $=id=>document.getElementById(id);
+
+let actx;
+function sound(f,d=.15,t="sine",v=.2){
+  if(muted)return;
+  try{actx??=new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);}catch(e){}
+}
+const winSnd=()=>[523,659,784].forEach((f,i)=>setTimeout(()=>sound(f,.18),i*90));
+
+const pool=[];
+for(let i=0;i<30;i++){const p=document.createElement("div");
+  p.className="particle hidden";$("stage").appendChild(p);pool.push(p);}
+let pi=0;
+function burst(x,y,chars,n=10){
+  for(let i=0;i<n;i++){
+    const p=pool[pi=(pi+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const a=Math.random()*Math.PI*2,d=8+Math.random()*12;
+    p.style.left=x+"px";p.style.top=y+"px";
+    p.style.transition="none";p.style.opacity="1";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .8s ease-out";
+      p.style.left=(x+Math.cos(a)*d*innerWidth/100)+"px";
+      p.style.top=(y+Math.sin(a)*d*innerHeight/100)+"px";
+      p.style.opacity="0";}));
+  }
+}
+
+const r=n=>Math.floor(Math.random()*n);
+
+// draw pizza with conic-gradient: topped slices = pepperoni red, rest = cheese
+function drawPizza(){
+  const per=360/den, stops=[];
+  for(let i=0;i<den;i++){
+    const c=i<num?"#C62828":"#FFD54F";
+    stops.push(`${c} ${i*per}deg ${(i+1)*per}deg`);
+  }
+  // thin slice borders via repeating overlay
+  $("pizza").style.background=
+    `repeating-conic-gradient(rgba(0,0,0,.25) 0 .6deg, transparent .6deg ${per}deg),`+
+    `conic-gradient(${stops.join(",")})`;
+}
+
+function makeFraction(){
+  const dens=level===1?[2,4]:level===2?[3,4,6]:[3,4,6,8];
+  den=dens[r(dens.length)];
+  num=1+r(den-1);
+}
+
+function fracChoice(n,d){return {n,d,label:`${n}/${d}`};}
+
+function newRound(){
+  state="playing"; round++;
+  makeFraction(); drawPizza();
+  const opts=[fracChoice(num,den)];
+  // distractors: flipped, off-by-one, and (level 3) an equivalent-looking trap
+  const cands=[fracChoice(den-num,den),fracChoice(Math.min(num+1,den),den),
+    fracChoice(Math.max(1,num-1),den),fracChoice(num,den===8?4:den*2)];
+  for(const c of cands){
+    if(opts.length>=3)break;
+    if(!opts.some(o=>o.n===c.n&&o.d===c.d)&&!(c.n===num&&c.d===den)
+       &&!(c.n/c.d===num/den))opts.push(c);
+  }
+  while(opts.length<3){const d2=den,n2=1+r(d2-1);
+    if(!opts.some(o=>o.n===n2&&o.d===d2)&&n2/d2!==num/den)opts.push(fracChoice(n2,d2));}
+  const wrap=$("choices"); wrap.innerHTML="";
+  opts.sort(()=>Math.random()-.5).forEach(c=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.innerHTML=`<span class="top">${c.n}</span><span class="bot">${c.d}</span>`;
+    b.addEventListener("pointerdown",e=>{e.stopPropagation();pick(c,b);});
+    wrap.appendChild(b);
+  });
+  $("titleScreen").classList.add("hidden");
+  $("breakScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+}
+
+function pick(c,btn){
+  if(state!=="playing")return;
+  const rect=btn.getBoundingClientRect();
+  if(c.n/c.d===num/den){
+    state="waiting"; stars++; streak++;
+    $("starCount").textContent=stars; $("streakCount").textContent=streak;
+    btn.classList.add("yes"); winSnd();
+    burst(rect.left+rect.width/2,rect.top,["🍕","⭐","✨"],12);
+    if(streak%STREAK_UP===0&&level<3)level++;
+    setTimeout(()=> round%ROUNDS_PER_SET===0?showBreak():newRound(),1200);
+  }else{
+    sound(220,.2,"triangle",.15); streak=0;
+    $("streakCount").textContent=0;
+    btn.classList.remove("no");void btn.offsetWidth;btn.classList.add("no");
+    $("pizza").classList.remove("wob");void $("pizza").offsetWidth;
+    $("pizza").classList.add("wob");
+    // count the topped slices aloud with beeps (visual pulse via rotation flash)
+    for(let i=0;i<num;i++)setTimeout(()=>sound(500+i*70,.14),500+i*350);
+    if(level>1)level--;
+  }
+}
+
+function showBreak(){
+  state="break";
+  const earned=streak>=ROUNDS_PER_SET?3:streak>=3?2:1;
+  $("waveStars").textContent="⭐".repeat(earned)+"☆".repeat(3-earned);
+  $("gameScreen").classList.add("hidden");
+  $("breakScreen").classList.remove("hidden");
+}
+
+$("playBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.12);newRound();});
+$("againBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.12);newRound();});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.remove("hidden");});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.add("hidden");});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+</script>
+</body>
+</html>

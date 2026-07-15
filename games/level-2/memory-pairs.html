@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Memory Pairs — Numbers & Sums (Ages 6–7)</title>
+<!-- MEMORY PAIRS • Level 2 • memory + number bonds • offline, no ads, no data -->
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
+    background:linear-gradient(#F8BBD0,#EC407A)}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4vmin}
+  .hidden{display:none !important}
+  button{border:none;background:none;font-family:inherit;cursor:pointer;padding:0}
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:5vmin;width:9vmin;height:9vmin;border-radius:50%;
+    background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.2);display:flex;
+    align-items:center;justify-content:center}
+  #starbar{font-size:4.5vmin;background:#fff;border-radius:6vmin;padding:1vmin 3vmin;
+    box-shadow:0 3px 8px rgba(0,0,0,.15);color:#AD1457}
+  h1{color:#fff;font-size:8vmin;margin:0;text-shadow:0 3px 6px rgba(0,0,0,.25)}
+  #titleCard{font-size:20vmin;animation:flipTease 2.4s ease-in-out infinite}
+  @keyframes flipTease{0%,100%{transform:rotateY(0)}50%{transform:rotateY(30deg)}}
+  .bigBtn{font-size:12vmin;width:24vmin;height:24vmin;border-radius:50%;
+    background:#FFF176;box-shadow:0 7px 0 #c9bc35,0 12px 20px rgba(0,0,0,.25);
+    display:flex;align-items:center;justify-content:center;
+    animation:breathe 2s ease-in-out infinite}
+  .bigBtn:active{transform:scale(.92)}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  #board{display:grid;gap:2.5vmin;perspective:1000px}
+  .cardWrap{width:20vmin;height:24vmin;position:relative;cursor:pointer}
+  .cardInner{position:absolute;inset:0;transition:transform .45s;
+    transform-style:preserve-3d}
+  .cardWrap.flipped .cardInner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;border-radius:2.5vmin;display:flex;
+    align-items:center;justify-content:center;backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;box-shadow:0 4px 10px rgba(0,0,0,.2)}
+  .back{background:#AB47BC;font-size:9vmin;color:#fff}
+  .front{background:#fff;transform:rotateY(180deg);font-size:6.5vmin;
+    font-weight:bold;color:#AD1457}
+  .cardWrap.matched .cardInner{animation:matchPop .5s ease}
+  .cardWrap.matched .front{background:#FFF176}
+  @keyframes matchPop{50%{transform:rotateY(180deg) scale(1.15)}
+    100%{transform:rotateY(180deg)}}
+  .particle{position:absolute;pointer-events:none;font-size:5vmin;line-height:1;z-index:20}
+  #breakStars{font-size:11vmin;letter-spacing:1vmin;color:#fff}
+  .sub{color:#fff;font-size:5vmin;text-shadow:0 2px 4px rgba(0,0,0,.25)}
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:#fff;border-radius:4vmin;padding:5vmin;max-width:80vmin;
+    font-size:3.4vmin;line-height:1.5;color:#37474f}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.5vmin;color:#EC407A}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="topbar">
+    <button id="infoBtn">ⓘ</button>
+    <div id="starbar">⭐ <span id="starCount">0</span></div>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <div id="titleCard">🃏</div>
+    <h1>Memory Pairs</h1>
+    <button id="playBtn" class="bigBtn">▶</button>
+  </div>
+
+  <div id="gameScreen" class="screen hidden">
+    <div id="board"></div>
+  </div>
+
+  <div id="breakScreen" class="screen hidden">
+    <div style="font-size:18vmin">🧠</div>
+    <div id="breakStars"></div>
+    <div class="sub" id="breakMsg">Super memory!</div>
+    <button id="againBtn" class="bigBtn">▶</button>
+  </div>
+
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      A memory game with math hidden inside: each number card pairs with a
+      <b>sum card</b> — 7 matches "3 + 4". Practices number bonds and working
+      memory at once. Boards grow from 3 pairs to 6 as your child succeeds.
+      No timers, no losing — every board ends in a win.
+      <br><br>✅ Fully offline • no ads • no links • no data collected.<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const START_PAIRS=3, MAX_PAIRS=6, MAX_TOTAL=12; // sums stay within this
+
+let state="title", pairs=START_PAIRS, stars=0, muted=false;
+let first=null, lock=false, matchedCount=0;
+const $=id=>document.getElementById(id);
+
+let actx;
+function sound(f,d=.15,t="sine",v=.2){
+  if(muted)return;
+  try{actx??=new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);}catch(e){}
+}
+const flipSnd =()=>sound(500,.08,"triangle",.12);
+const matchSnd=()=>[659,880].forEach((f,i)=>setTimeout(()=>sound(f,.15),i*80));
+const winSnd  =()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>sound(f,.2),i*100));
+
+const pool=[];
+for(let i=0;i<30;i++){const p=document.createElement("div");
+  p.className="particle hidden";$("stage").appendChild(p);pool.push(p);}
+let pi=0;
+function burst(x,y,chars,n=10){
+  for(let i=0;i<n;i++){
+    const p=pool[pi=(pi+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const a=Math.random()*Math.PI*2,d=8+Math.random()*12;
+    p.style.left=x+"px";p.style.top=y+"px";
+    p.style.transition="none";p.style.opacity="1";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .8s ease-out";
+      p.style.left=(x+Math.cos(a)*d*innerWidth/100)+"px";
+      p.style.top=(y+Math.sin(a)*d*innerHeight/100)+"px";
+      p.style.opacity="0";}));
+  }
+}
+
+const r=n=>Math.floor(Math.random()*n);
+
+function buildBoard(){
+  state="playing"; first=null; lock=false; matchedCount=0;
+  // choose distinct totals, each becomes a pair: [total] & [a + b]
+  const totals=new Set();
+  while(totals.size<pairs) totals.add(3+r(MAX_TOTAL-2));
+  const cards=[];
+  totals.forEach(t=>{
+    const a=1+r(t-2), b=t-a;
+    cards.push({key:t,label:String(t)});
+    cards.push({key:t,label:`${a} + ${b}`});
+  });
+  cards.sort(()=>Math.random()-.5);
+  const board=$("board"); board.innerHTML="";
+  const cols=cards.length<=6?3:4;
+  board.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  cards.forEach(c=>{
+    const w=document.createElement("div");
+    w.className="cardWrap";
+    w.innerHTML=`<div class="cardInner">
+      <div class="face back">❔</div>
+      <div class="face front">${c.label}</div></div>`;
+    w.dataset.key=c.key;
+    w.addEventListener("pointerdown",e=>{e.stopPropagation();flip(w);});
+    board.appendChild(w);
+  });
+  $("titleScreen").classList.add("hidden");
+  $("breakScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+}
+
+function flip(w){
+  if(state!=="playing"||lock||w.classList.contains("flipped"))return;
+  flipSnd();
+  w.classList.add("flipped");
+  if(!first){first=w;return;}
+  lock=true;
+  if(first.dataset.key===w.dataset.key){
+    const a=first,b=w;
+    setTimeout(()=>{
+      a.classList.add("matched");b.classList.add("matched");
+      matchSnd();
+      const rect=b.getBoundingClientRect();
+      burst(rect.left+rect.width/2,rect.top+rect.height/2,["⭐","💖","✨"],8);
+      matchedCount++; first=null; lock=false;
+      if(matchedCount===pairs) boardDone();
+    },450);
+  }else{
+    const a=first,b=w;
+    setTimeout(()=>{
+      sound(220,.18,"triangle",.12);
+      a.classList.remove("flipped");b.classList.remove("flipped");
+      first=null; lock=false;
+    },1100);
+  }
+}
+
+function boardDone(){
+  state="break"; stars+=3;
+  $("starCount").textContent=stars;
+  winSnd();
+  if(pairs<MAX_PAIRS)pairs++;
+  setTimeout(()=>{
+    $("breakStars").textContent="⭐⭐⭐";
+    $("gameScreen").classList.add("hidden");
+    $("breakScreen").classList.remove("hidden");
+  },900);
+}
+
+$("playBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.12);buildBoard();});
+$("againBtn").addEventListener("pointerdown",e=>{e.stopPropagation();sound(660,.12);buildBoard();});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.remove("hidden");});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.add("hidden");});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Order of Ops — PEMDAS (Ages 12+)</title>
+<!-- ORDER OF OPS • Level 5 • order of operations • offline, no ads, no data -->
+<style>
+  :root{--bg:#1A1A2E;--panel:#232342;--accent:#00E5FF;--good:#76FF03;--bad:#FF4081;--txt:#EAEAF2}
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:Georgia,"Times New Roman",serif;background:var(--bg);color:var(--txt)}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:3.5vmin;z-index:5}
+  .hidden{display:none !important}
+  button{border:none;font-family:inherit;cursor:pointer;color:inherit;background:none}
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:4.5vmin;width:9vmin;height:9vmin;border-radius:50%;
+    background:var(--panel);display:flex;align-items:center;justify-content:center}
+  h1{font-size:8.5vmin;margin:0;color:var(--accent);font-style:italic}
+  .sub{color:#9A9AB8;font-size:3.6vmin;text-align:center}
+  .btn{font-size:5vmin;padding:2.2vmin 7vmin;border-radius:1.5vmin;
+    background:var(--panel);border:.35vmin solid var(--accent);color:var(--accent)}
+  .btn:active{transform:scale(.96)}
+  #hardBtn{border-color:var(--bad);color:var(--bad);font-size:4vmin;padding:1.6vmin 4.5vmin}
+  #hardBtn.on{background:var(--bad);color:#000}
+  #hud{position:absolute;top:4.5vmin;left:0;right:0;display:flex;
+    justify-content:center;gap:7vmin;font-size:4.2vmin;font-family:monospace}
+  #hstreak{color:var(--bad)} #hsolved{color:var(--good)}
+  #expr{font-size:11vmin;letter-spacing:.4vmin;font-family:monospace;
+    text-shadow:0 0 5vmin rgba(0,229,255,.25)}
+  #expr.hit{animation:hit .35s ease}
+  @keyframes hit{40%{transform:scale(1.08);color:var(--good)}}
+  #expr.miss{animation:miss .35s ease}
+  @keyframes miss{25%{transform:translateX(-2vmin)}75%{transform:translateX(2vmin)}}
+  #steps{font-size:4.2vmin;color:#9A9AB8;min-height:6vmin;font-family:monospace;
+    opacity:0;transition:opacity .3s;text-align:center;line-height:1.7}
+  #choices{display:grid;grid-template-columns:1fr 1fr;gap:3vmin;width:min(76vmin,90vw)}
+  .choice{font-size:7.5vmin;padding:3.2vmin 0;border-radius:1.8vmin;background:var(--panel);
+    border:.3vmin solid #3A3A5E;text-align:center;font-family:monospace}
+  .choice:active{border-color:var(--accent)}
+  .particle{position:absolute;pointer-events:none;font-size:4.5vmin;z-index:20}
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:var(--panel);border-radius:3vmin;padding:5vmin;max-width:82vmin;
+    font-size:3.3vmin;line-height:1.55}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.4vmin;color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="topbar">
+    <button id="infoBtn">ⓘ</button>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <h1>order of ops</h1>
+    <div class="sub">PEMDAS is the law. Enforce it.</div>
+    <div class="sub" id="bestLine"></div>
+    <button id="hardBtn" class="btn">⚡ HARD: OFF</button>
+    <button id="playBtn" class="btn">SOLVE ▶</button>
+  </div>
+
+  <div id="gameScreen" class="screen hidden">
+    <div id="hud"><span id="hsolved">0 solved</span><span id="hstreak">streak 0</span></div>
+    <div id="expr">3 + 4 × 2</div>
+    <div id="steps"></div>
+    <div id="choices"></div>
+  </div>
+
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      Practices <b>order of operations</b> (PEMDAS) — the #1 source of errors
+      in early algebra. Wrong choices trigger a step-by-step evaluation so
+      the rule teaches itself. Distractors are the classic left-to-right
+      mistakes, so guessing doesn't pay. Hard mode adds parentheses and
+      exponents. Best streaks saved on this device only.
+      <br><br>✅ Fully offline • no ads • no links • no data collected.<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const CHOICES=4, SHOW_STEPS_MS=4000;
+
+let state="title", hard=false, muted=false;
+let answer=0, solved=0, streak=0, best={normal:0,hard:0}, current=null;
+const $=id=>document.getElementById(id);
+try{best=JSON.parse(localStorage.getItem("orderOpsBest"))||best;}catch(e){}
+showBest();
+function showBest(){
+  const b=hard?best.hard:best.normal;
+  $("bestLine").textContent=b?`Best streak (${hard?"hard":"normal"}): ${b}`:"";
+}
+
+let actx;
+function sound(f,d=.12,t="sine",v=.15){
+  if(muted)return;
+  try{actx??=new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);}catch(e){}
+}
+const hitSnd=()=>{sound(660,.1);setTimeout(()=>sound(990,.12),70);};
+const missSnd=()=>sound(160,.25,"triangle",.12);
+
+const pool=[];
+for(let i=0;i<20;i++){const p=document.createElement("div");
+  p.className="particle hidden";$("stage").appendChild(p);pool.push(p);}
+let pi=0;
+function burst(x,y,chars,n=7){
+  for(let i=0;i<n;i++){
+    const p=pool[pi=(pi+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const a=Math.random()*Math.PI*2,d=6+Math.random()*10;
+    p.style.left=x+"px";p.style.top=y+"px";
+    p.style.transition="none";p.style.opacity="1";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .6s ease-out";
+      p.style.left=(x+Math.cos(a)*d*innerWidth/100)+"px";
+      p.style.top=(y+Math.sin(a)*d*innerHeight/100)+"px";
+      p.style.opacity="0";}));
+  }
+}
+
+const r=n=>Math.floor(Math.random()*n);
+const ri=(lo,hi)=>lo+r(hi-lo+1);
+
+// Each template returns {txt, ans, trap (left-to-right wrong answer), steps[]}
+function makeExpr(){
+  const kind=hard?r(4):r(2);
+  if(kind===0){                        // a + b × c
+    const a=ri(2,12),b=ri(2,9),c=ri(2,9);
+    return {txt:`${a} + ${b} × ${c}`,ans:a+b*c,trap:(a+b)*c,
+      steps:[`${b} × ${c} = ${b*c} first`,`${a} + ${b*c} = ${a+b*c}`]};
+  }
+  if(kind===1){                        // a − b ÷ c   (integer division)
+    const c=ri(2,6),q=ri(2,8),b=c*q,a=b+ri(2,15);
+    return {txt:`${a} − ${b} ÷ ${c}`,ans:a-q,trap:Math.round((a-b)/c),
+      steps:[`${b} ÷ ${c} = ${q} first`,`${a} − ${q} = ${a-q}`]};
+  }
+  if(kind===2){                        // (a + b) × c − d
+    const a=ri(2,8),b=ri(2,8),c=ri(2,5),d=ri(1,10);
+    return {txt:`(${a} + ${b}) × ${c} − ${d}`,ans:(a+b)*c-d,trap:a+b*c-d,
+      steps:[`(${a} + ${b}) = ${a+b} first`,`${a+b} × ${c} = ${(a+b)*c}`,
+        `${(a+b)*c} − ${d} = ${(a+b)*c-d}`]};
+  }
+  // a + b × c²
+  const a=ri(2,10),b=ri(2,5),c=ri(2,4);
+  return {txt:`${a} + ${b} × ${c}²`,ans:a+b*c*c,trap:(a+b)*c*c,
+    steps:[`${c}² = ${c*c} first (exponents!)`,`${b} × ${c*c} = ${b*c*c}`,
+      `${a} + ${b*c*c} = ${a+b*c*c}`]};
+}
+
+function newQuestion(){
+  state="playing";
+  current=makeExpr(); answer=current.ans;
+  $("expr").textContent=current.txt;
+  $("steps").style.opacity=0;
+  const opts=new Set([answer]);
+  if(current.trap!==answer&&current.trap>0)opts.add(current.trap); // the classic mistake
+  while(opts.size<CHOICES){
+    const d=answer+[1,-1,2,-2,5,-5,10,-10][r(8)];
+    if(d!==answer&&d>0)opts.add(d);
+  }
+  const wrap=$("choices"); wrap.innerHTML="";
+  [...opts].sort(()=>Math.random()-.5).forEach(v=>{
+    const b=document.createElement("button");
+    b.className="choice"; b.textContent=v;
+    b.addEventListener("pointerdown",e=>{e.stopPropagation();pick(v,b);});
+    wrap.appendChild(b);
+  });
+}
+
+function pick(v,btn){
+  if(state!=="playing")return;
+  const rect=btn.getBoundingClientRect();
+  if(v===answer){
+    hitSnd(); solved++; streak++;
+    burst(rect.left+rect.width/2,rect.top,["✓","✦"],6);
+    $("expr").classList.remove("hit");void $("expr").offsetWidth;
+    $("expr").classList.add("hit");
+    const key=hard?"hard":"normal";
+    if(streak>best[key]){best[key]=streak;
+      try{localStorage.setItem("orderOpsBest",JSON.stringify(best));}catch(e){}}
+    updateHud(); state="waiting";
+    setTimeout(newQuestion,700);
+  }else{
+    missSnd(); streak=0; updateHud();
+    $("expr").classList.remove("miss");void $("expr").offsetWidth;
+    $("expr").classList.add("miss");
+    $("steps").innerHTML=current.steps.join("<br>");
+    $("steps").style.opacity=1;
+    state="waiting";
+    setTimeout(newQuestion,SHOW_STEPS_MS);
+  }
+}
+function updateHud(){
+  $("hsolved").textContent=solved+" solved";
+  $("hstreak").textContent="streak "+streak;
+}
+
+$("playBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();sound(660,.1);solved=0;streak=0;updateHud();
+  $("titleScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  newQuestion();});
+$("hardBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();hard=!hard;sound(hard?300:500,.1);
+  $("hardBtn").textContent=`⚡ HARD: ${hard?"ON":"OFF"}`;
+  $("hardBtn").classList.toggle("on",hard);showBest();});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.remove("hidden");});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.add("hidden");});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+</script>
+</body>
+</html>

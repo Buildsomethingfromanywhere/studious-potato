@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Speed Tables — Times Table Racer (Ages 8–9)</title>
+<!-- SPEED TABLES • Level 3 • times-table fluency • offline, no ads, no data -->
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    font-family:"Comic Sans MS","Chalkboard SE",rounded,sans-serif;
+    background:linear-gradient(#26C6DA,#00838F)}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4vmin}
+  .hidden{display:none !important}
+  button{border:none;background:none;font-family:inherit;cursor:pointer;padding:0}
+  #topbar{position:absolute;top:2vmin;left:0;right:0;display:flex;
+    justify-content:space-between;padding:0 3vmin;z-index:50;pointer-events:none}
+  #topbar>*{pointer-events:auto}
+  #muteBtn,#infoBtn{font-size:5vmin;width:9vmin;height:9vmin;border-radius:50%;
+    background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.2);display:flex;
+    align-items:center;justify-content:center}
+  h1{color:#fff;font-size:8vmin;margin:0;text-shadow:0 3px 6px rgba(0,0,0,.3)}
+  #titleCar{font-size:20vmin;animation:vroom 1.6s ease-in-out infinite}
+  @keyframes vroom{0%,100%{transform:translateX(-3vmin)}50%{transform:translateX(3vmin)}}
+  .sub{color:#B2EBF2;font-size:4.2vmin;text-align:center}
+  #tablePick{display:flex;gap:2.5vmin;flex-wrap:wrap;justify-content:center;max-width:86vw}
+  .tbtn{font-size:6.5vmin;width:14vmin;height:14vmin;border-radius:3vmin;background:#fff;
+    color:#00838F;font-weight:bold;box-shadow:0 5px 0 rgba(0,0,0,.2);
+    display:flex;align-items:center;justify-content:center}
+  .tbtn:active{transform:scale(.93)}
+  .tbtn.mix{width:auto;padding:0 4vmin;background:#FFEB3B}
+  #raceHud{position:absolute;top:4.5vmin;left:0;right:0;display:flex;
+    justify-content:center;gap:6vmin;font-size:4.5vmin;color:#fff}
+  #track{position:absolute;top:16vmin;left:5vw;right:5vw;height:8vmin}
+  #road{position:absolute;inset:0;background:rgba(0,0,0,.25);border-radius:4vmin}
+  #car{position:absolute;left:0;top:50%;transform:translateY(-50%);font-size:7vmin;
+    transition:left .4s ease}
+  #flag{position:absolute;right:1vmin;top:50%;transform:translateY(-50%);font-size:6vmin}
+  #question{font-size:14vmin;font-weight:bold;color:#fff;
+    text-shadow:0 3px 8px rgba(0,0,0,.3);margin-top:10vmin}
+  #question.hit{animation:hit .3s ease}
+  @keyframes hit{40%{transform:scale(1.12)}}
+  #question.miss{animation:miss .35s ease}
+  @keyframes miss{25%{transform:translateX(-2vmin)}75%{transform:translateX(2vmin)}}
+  #answers{display:grid;grid-template-columns:1fr 1fr;gap:3vmin;width:min(76vmin,90vw)}
+  .ans{font-size:8vmin;padding:3.5vmin 0;border-radius:3vmin;background:#fff;
+    color:#00838F;font-weight:bold;text-align:center;
+    box-shadow:0 5px 0 rgba(0,0,0,.18)}
+  .ans:active{transform:scale(.95)}
+  .particle{position:absolute;pointer-events:none;font-size:5vmin;line-height:1;z-index:20}
+  #endCar{font-size:20vmin}
+  .stat{font-size:5.5vmin;color:#fff}
+  .stat b{color:#FFEB3B}
+  .bigBtn{font-size:11vmin;width:22vmin;height:22vmin;border-radius:50%;
+    background:#FFEB3B;box-shadow:0 7px 0 #c8b900,0 12px 20px rgba(0,0,0,.25);
+    display:flex;align-items:center;justify-content:center}
+  .bigBtn:active{transform:scale(.92)}
+  #infoPanel{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:100;
+    display:flex;align-items:center;justify-content:center}
+  #infoCard{background:#fff;border-radius:4vmin;padding:5vmin;max-width:80vmin;
+    font-size:3.4vmin;line-height:1.5;color:#37474f}
+  #infoCard h2{margin:0 0 2vmin;font-size:4.5vmin;color:#00838F}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="topbar">
+    <button id="infoBtn">ⓘ</button>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <div id="titleCar">🏎️</div>
+    <h1>Speed Tables</h1>
+    <div class="sub">Pick your table — 10 questions.<br>Race the clock, beat your best time!</div>
+    <div id="tablePick"></div>
+  </div>
+
+  <div id="gameScreen" class="screen hidden">
+    <div id="raceHud"><span id="qNum">1/10</span><span id="clock">0.0s</span></div>
+    <div id="track"><div id="road"></div><div id="car">🏎️</div><div id="flag">🏁</div></div>
+    <div id="question">6 × 4</div>
+    <div id="answers"></div>
+  </div>
+
+  <div id="endScreen" class="screen hidden">
+    <div id="endCar">🏆</div>
+    <div class="stat">Time: <b id="endTime">0s</b></div>
+    <div class="stat" id="endBest"></div>
+    <button id="againBtn" class="bigBtn">▶</button>
+  </div>
+
+  <div id="infoPanel" class="hidden">
+    <div id="infoCard">
+      <h2>For grown-ups 👋</h2>
+      Builds <b>times-table fluency</b> — fluency is speed, and kids love
+      racing their own best time. Pick a single table (2–9) or Mix. Ten
+      questions per race; wrong answers just cost time (the same fact returns
+      before the race ends). Best time per table is saved on this device only.
+      <br><br>✅ Fully offline • no ads • no links • no data collected.<br><br>
+      <i>Tap anywhere to close.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== TUNABLES (parents: adjust these!) =====
+const RACE_LENGTH=10;
+
+let state="title", table=0, q=0, answer=0, t0=0, elapsed=0, muted=false;
+let queue=[], best={};
+const $=id=>document.getElementById(id);
+try{best=JSON.parse(localStorage.getItem("speedTablesBest"))||{};}catch(e){}
+
+let actx;
+function sound(f,d=.12,t="sine",v=.18){
+  if(muted)return;
+  try{actx??=new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);}catch(e){}
+}
+const hitSnd=()=>{sound(760,.08);setTimeout(()=>sound(1140,.1),50);};
+const winSnd=()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>sound(f,.2),i*100));
+
+const pool=[];
+for(let i=0;i<24;i++){const p=document.createElement("div");
+  p.className="particle hidden";$("stage").appendChild(p);pool.push(p);}
+let pi=0;
+function burst(x,y,chars,n=8){
+  for(let i=0;i<n;i++){
+    const p=pool[pi=(pi+1)%pool.length];
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.classList.remove("hidden");
+    const a=Math.random()*Math.PI*2,d=7+Math.random()*11;
+    p.style.left=x+"px";p.style.top=y+"px";
+    p.style.transition="none";p.style.opacity="1";
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      p.style.transition="all .7s ease-out";
+      p.style.left=(x+Math.cos(a)*d*innerWidth/100)+"px";
+      p.style.top=(y+Math.sin(a)*d*innerHeight/100)+"px";
+      p.style.opacity="0";}));
+  }
+}
+
+const r=n=>Math.floor(Math.random()*n);
+
+// table picker buttons
+(function(){
+  const wrap=$("tablePick");
+  for(let t=2;t<=9;t++){
+    const b=document.createElement("button");
+    b.className="tbtn"; b.textContent="×"+t;
+    b.addEventListener("pointerdown",e=>{e.stopPropagation();startRace(t);});
+    wrap.appendChild(b);
+  }
+  const mix=document.createElement("button");
+  mix.className="tbtn mix"; mix.textContent="MIX 🎲";
+  mix.addEventListener("pointerdown",e=>{e.stopPropagation();startRace(0);});
+  wrap.appendChild(mix);
+})();
+
+function startRace(t){
+  sound(660,.1);
+  table=t; q=0; elapsed=0; t0=performance.now();
+  queue=[];
+  for(let i=0;i<RACE_LENGTH;i++){
+    const a=t||2+r(8), b=2+r(8);
+    queue.push({a,b,ans:a*b});
+  }
+  state="racing";
+  $("titleScreen").classList.add("hidden");
+  $("endScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  nextQ();
+}
+
+function nextQ(){
+  if(q>=RACE_LENGTH){finish();return;}
+  const p=queue[q]; answer=p.ans;
+  $("question").textContent=`${p.a} × ${p.b}`;
+  $("qNum").textContent=(q+1)+"/"+RACE_LENGTH;
+  $("car").style.left=(q/RACE_LENGTH*86)+"%";
+  const opts=new Set([answer]);
+  while(opts.size<4){
+    const wr=[answer+p.a,answer-p.a,answer+p.b,answer-p.b,answer+1,answer-1][r(6)];
+    if(wr>0&&wr!==answer)opts.add(wr);
+  }
+  const wrap=$("answers"); wrap.innerHTML="";
+  [...opts].sort(()=>Math.random()-.5).forEach(v=>{
+    const b=document.createElement("button");
+    b.className="ans"; b.textContent=v;
+    b.addEventListener("pointerdown",e=>{e.stopPropagation();pick(v,b);});
+    wrap.appendChild(b);
+  });
+}
+
+function pick(v,btn){
+  if(state!=="racing")return;
+  const rect=btn.getBoundingClientRect();
+  if(v===answer){
+    hitSnd(); q++;
+    burst(rect.left+rect.width/2,rect.top,["💨","⭐"],5);
+    $("question").classList.remove("hit");void $("question").offsetWidth;
+    $("question").classList.add("hit");
+    nextQ();
+  }else{
+    sound(200,.2,"triangle",.14);
+    $("question").classList.remove("miss");void $("question").offsetWidth;
+    $("question").classList.add("miss");
+    queue.push(queue[q]); queue.splice(q,1);  // fact returns later in the race
+  }
+}
+
+// clock
+function tick(){
+  if(state==="racing"){
+    elapsed=(performance.now()-t0)/1000;
+    $("clock").textContent=elapsed.toFixed(1)+"s";
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+function finish(){
+  state="end"; winSnd();
+  const key=table||"mix";
+  const time=+elapsed.toFixed(1);
+  $("endTime").textContent=time+"s";
+  if(!best[key]||time<best[key]){
+    best[key]=time;
+    $("endBest").innerHTML="🏅 <b>New best time!</b>";
+    try{localStorage.setItem("speedTablesBest",JSON.stringify(best));}catch(e){}
+  }else $("endBest").textContent=`Best (${key===0?"mix":"×"+key}): ${best[key]}s`;
+  $("gameScreen").classList.add("hidden");
+  $("endScreen").classList.remove("hidden");
+}
+
+$("againBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();sound(660,.1);
+  $("endScreen").classList.add("hidden");
+  $("titleScreen").classList.remove("hidden");
+  state="title";
+});
+$("muteBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";});
+$("infoBtn").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.remove("hidden");});
+$("infoPanel").addEventListener("pointerdown",e=>{
+  e.stopPropagation();$("infoPanel").classList.add("hidden");});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+</script>
+</body>
+</html>
